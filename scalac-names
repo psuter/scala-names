@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# In an ideal world, this would be auto-generated and invoke the same Scala
+# that (x)sbt does.
+scalac -Xplugin:./target/scala-2.9.0.1/scala-names_2.9.0-1-1.0.jar -d out $@
