@@ -39,9 +39,9 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
     val Var     = Value("var")
     val Param   = Value("par")
   }
-  case class D(name : String, kind : DefKinds.DefKind, synthetic : Boolean) {
+  case class D(name : String, kind : DefKinds.DefKind, synthetic : Boolean, position : Position) {
     override def toString : String = {
-      (if(synthetic) "(S) " else "    ") + kind + " " + name 
+      (if(synthetic) "(S) " else "    ") + kind + " " + name + " @" + position
     }
   }
 
@@ -60,13 +60,13 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
     override def traverse(tree : Tree) {
       val optDfn = tree match {
         case d @ TypeDef(mods, _, _, _) => {
-          Some(D(d.name.toString, Type, mods.isSynthetic))
+          Some(D(d.name.toString, Type, mods.isSynthetic, d.pos))
         }
         case d @ ClassDef(mods, _, _, _) => {
           if(mods.hasModuleFlag) {
-            Some(D(d.name.toString, Object, mods.isSynthetic))
+            Some(D(d.name.toString, Object, mods.isSynthetic, d.pos))
           } else {
-            Some(D(d.name.toString, if(mods.isTrait) Trait else Class, mods.isSynthetic))
+            Some(D(d.name.toString, if(mods.isTrait) Trait else Class, mods.isSynthetic, d.pos))
           }
         }
         case d @ DefDef(mods, _, _, _, _, _) => {
@@ -77,19 +77,19 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
             mods.isCaseAccessor ||
             mods.isSuperAccessor
           )
-          Some(D(d.name.toString, Def, isSynth))
+          Some(D(d.name.toString, Def, isSynth, d.pos))
         }
         case d @ ModuleDef(mods, _, _) => {
-          Some(D(d.name.toString, Object, mods.isSynthetic))
+          Some(D(d.name.toString, Object, mods.isSynthetic, d.pos))
         }
         case d @ PackageDef(_, _) => {
-          Some(D(d.name.toString, Package, false))
+          Some(D(d.name.toString, Package, false, d.pos))
         }
         case d @ ValDef(mods, _, _, _) => {
           if(mods.isParameter) {
-            Some(D(d.name.toString, Param, mods.isSynthetic))
+            Some(D(d.name.toString, Param, mods.isSynthetic, d.pos))
           } else {
-            Some(D(d.name.toString, if(mods.isMutable) Var else Val, mods.isSynthetic))
+            Some(D(d.name.toString, if(mods.isMutable) Var else Val, mods.isSynthetic, d.pos))
           }
         }
         case _ => None
