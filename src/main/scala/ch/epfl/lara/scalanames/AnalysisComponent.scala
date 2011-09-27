@@ -111,3 +111,4 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
     }
   }
 }
+//EZ: Commit test
