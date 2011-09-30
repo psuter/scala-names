@@ -1,0 +1,4 @@
+<plugin>
+    <name>scala-names</name>
+    <classname>ch.epfl.lara.scalanames.ScalaNamesPlugin</classname>
+</plugin>
