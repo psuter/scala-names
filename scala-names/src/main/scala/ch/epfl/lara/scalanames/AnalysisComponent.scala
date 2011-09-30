@@ -44,6 +44,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       (if(synthetic) "(S) " else "    ") + kind + " " + name + " @" + position
     }
   }
+  //liste des methodes avec type de retour
 
   class NameCollector(val unit : CompilationUnit) extends Traverser {
     import DefKinds._
