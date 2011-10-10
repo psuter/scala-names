@@ -54,7 +54,7 @@ object Definition {
   }
   
   case class Parameter(name: String, ptype: Type, synthetic : Boolean, position : Position) extends D(name,DefKinds.Param,synthetic,position){
-    override def toString : String = super.getK +" "+name +":"+ptype
+    override def toString : String = super.getK +" "+name +":"+ptype+"@"+position
 
   }
   
@@ -66,6 +66,7 @@ object Definition {
       
       //Print prettier the args
       def prettyArgs(list:List[Parameter]):String= list match{
+      case x :: Nil => x.name+":"+x.ptype
       case x :: xs => x.name+":"+x.ptype+","+prettyArgs(xs)
       case Nil => ""
       }
@@ -112,7 +113,8 @@ object Definition {
             mods.hasAccessorFlag ||
             mods.isParamAccessor ||
             mods.isCaseAccessor ||
-            mods.isSuperAccessor
+            mods.isSuperAccessor ||
+            d.name.toString().equals("<init>")
           )         
           Some(MethodDef(name.toString,mapParam(d.symbol.tpe.params,d.symbol.tpe.paramTypes,List()),d.symbol.tpe.resultType,isSynth,d.pos))
         }
@@ -120,6 +122,7 @@ object Definition {
           Some(Any(d.name.toString, Object, mods.isSynthetic, d.pos))
         }
         case d @ PackageDef(_, _) => {
+          //val isSynth = d.name.toString().equals("<empty>")    But if do so, compiler stop fetching data   
           Some(Any(d.name.toString, Package, false, d.pos))
         }
         case d @ ValDef(mods, _, _, _) => {
