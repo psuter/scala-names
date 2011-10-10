@@ -53,8 +53,8 @@ object Definition {
   case class Any(name : String, kind : DefKinds.DefKind, synthetic : Boolean, position : Position) extends D(name,kind,synthetic,position){
   }
   
-  case class Parameter(name: String, ptype: Type) extends D(name,DefKinds.Param,false,null){
-    override def toString : String = name +":"+ptype
+  case class Parameter(name: String, ptype: Type, synthetic : Boolean, position : Position) extends D(name,DefKinds.Param,synthetic,position){
+    override def toString : String = super.getK +" "+name +":"+ptype
 
   }
   
@@ -66,7 +66,7 @@ object Definition {
       
       //Print prettier the args
       def prettyArgs(list:List[Parameter]):String= list match{
-      case x :: xs => x.toString+","+prettyArgs(xs)
+      case x :: xs => x.name+":"+x.ptype+","+prettyArgs(xs)
       case Nil => ""
       }
   }
@@ -86,7 +86,7 @@ object Definition {
     }
     
     def mapParam(ss: List[Symbol],ts: List[Type], res:List[Parameter]): List[Parameter] = ss match {
-      case x :: xs => mapParam(xs,ts.tail,Parameter(x.name.toString,ts.head)::res)
+      case x :: xs => mapParam(xs,ts.tail,Parameter(x.name.toString,ts.head,x.isSynthetic,x.pos)::res)
       case Nil => res
   }
 
@@ -124,7 +124,7 @@ object Definition {
         }
         case d @ ValDef(mods, _, _, _) => {
           if(mods.isParameter) {
-            Some(Any(d.name.toString, Param, mods.isSynthetic, d.pos))
+            Some(Parameter(d.name.toString, d.symbol.tpe.resultType, mods.isSynthetic, d.pos))
           } else {
             Some(Any(d.name.toString, if(mods.isMutable) Var else Val, mods.isSynthetic, d.pos))
           }
