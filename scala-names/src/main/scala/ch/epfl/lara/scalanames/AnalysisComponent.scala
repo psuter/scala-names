@@ -4,7 +4,7 @@ import scala.tools.nsc.{Global,Phase}
 import scala.tools.nsc.plugins.PluginComponent
 import scala.collection.mutable.{Map=>MutableMap,Set=>MutableSet}
 
-abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends PluginComponent {
+abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends PluginComponent with Definitions {
   val global : Global
   import global._
 
@@ -20,64 +20,24 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       val nc = new NameCollector(unit)
       nameCollectors(unit) = nc
       nc.collect
+      
+      
+      
+      // check if naming bug was found
+      for(defn <- nc.collectedDefinitions) {
+        defn match {
+          case md : MethodDef => containsNamingBug(md)
+          case _ => ;
+        }
+        
+      }
     }
   }
 
   def newPhase(prev : Phase) = new AnalysisPhase(prev)
 
-object Definition {
-    
-  object DefKinds extends Enumeration {
-    type DefKind = Value
-
-    val Type    = Value("type")
-    val Class   = Value("class")
-    val Trait   = Value("trait")
-    val Def     = Value("def")
-    val Object  = Value("object")
-    val Package = Value("package")
-    val Val     = Value("val")
-    val Var     = Value("var")
-    val Param   = Value("par")
-  }
-  
-  abstract class D(name : String, kind : DefKinds.DefKind, synthetic : Boolean, position : Position) {
-    override def toString : String =
-      (if(synthetic) "(S) " else "    ") + kind + " " + name + " @" + position
-    def getS: Boolean = synthetic
-    def getK: DefKinds.DefKind = kind
-    
-  }
-  
-  //Temporary case class
-  case class Any(name : String, kind : DefKinds.DefKind, synthetic : Boolean, position : Position) extends D(name,kind,synthetic,position){
-  }
-  
-  case class Parameter(name: String, ptype: Type, synthetic : Boolean, position : Position) extends D(name,DefKinds.Param,synthetic,position){
-    override def toString : String = super.getK +" "+name +":"+ptype+"@"+position
-
-  }
-  
-  case class MethodDef(name: String, args: List[Parameter], rettype: Type, synthetic: Boolean, position: Position) 
-  extends D(name,DefKinds.Def,synthetic,position) {
-    override def toString : String = 
-      (if(synthetic) "(S) " else "    ") + DefKinds.Def.toString + " " + name + 
-      (if(args.isEmpty)"()" else "("+prettyArgs(args)+")")+":"+ rettype+" @" + position
-      
-      //Print prettier the args
-      def prettyArgs(list:List[Parameter]):String= list match{
-      case x :: Nil => x.name+":"+x.ptype
-      case x :: xs => x.name+":"+x.ptype+","+prettyArgs(xs)
-      case Nil => ""
-      }
-  }
-
-
-}
-
   class NameCollector(val unit : CompilationUnit) extends Traverser {
-    import Definition.DefKinds._
-    import Definition._
+    import DefKinds._
     private var collected = false
     def collect() {
       if(!collected) {
@@ -92,6 +52,7 @@ object Definition {
   }
 
     private val definitions : MutableSet[D] = MutableSet.empty
+    def collectedDefinitions : Set[D] = Set(definitions.toSeq : _*)
   
     override def traverse(tree : Tree) {
       val optDfn = tree match {
@@ -142,12 +103,13 @@ object Definition {
           definitions += dfn
 
           // To avoid collecting arguments of synthetic methods, for instance.
-          if(!dfn.getS) {
+          if(!dfn.synthetic) {
             super.traverse(tree)
           }
         }
         case None => super.traverse(tree)
       }
+      
     }
   }
 }
