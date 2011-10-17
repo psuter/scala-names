@@ -21,12 +21,20 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       nameCollectors(unit) = nc
       nc.collect
       
+//      val featureList : List[MethodFeature { val featureDefinitions : AnalysisComponent.this.type }] = List(
+//          new ReturnsTraversable { val id = 1 ; val featureDefinitions : AnalysisComponent.this.type = AnalysisComponent.this }
+//      )
       
+      val featureList : List[MethodFeature { val component : AnalysisComponent.this.type }] = List(
+          new ReturnsTraversable { val id = 1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+      )
       
       // check if naming bug was found
       for(defn <- nc.collectedDefinitions) {
         defn match {
-          case md : MethodDef => containsNamingBug(md)
+          case md : MethodDef => {
+            println(md.name + " " + featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" "))
+          }
           case _ => ;
         }
         
@@ -67,14 +75,20 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           }
         }
         /**DefDef (mods: Modifiers, name: TermName, tparams: List[TypeDef], vparamss: List[List[ValDef]], tpt: Tree, rhs: Tree)
-         * extends ValOrDefDef with Product with Serializable **/
+         * extends ValOrDefDef with Product with Serializable 
+         * e.g. foo[A,B](x : Int)(y : A) : String = expr 
+         *     name = "foo"
+         *     tparams = List("A","B")
+         *     vparamss = List(List("x : Int"), List("y : A")) //size 1: empty, size 0: , size > 1
+         *     tpt = "String"
+         *     rhs = [expr...] **/
         case d @ DefDef(mods, name, _, _, _, _) => {
           val isSynth = (
             mods.isSynthetic ||
             mods.hasAccessorFlag ||
             mods.isParamAccessor ||
             mods.isCaseAccessor ||
-            mods.isSuperAccessor ||
+            mods.isSuperAccessor ||           
             d.name.toString().equals("<init>")
           )         
           Some(MethodDef(name.toString,mapParam(d.symbol.tpe.params,d.symbol.tpe.paramTypes,List()),d.symbol.tpe.resultType,isSynth,d.pos))

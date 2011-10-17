@@ -2,8 +2,8 @@ package ch.epfl.lara.scalanames
 
 import scala.tools.nsc.Global
 
-trait Definitions extends ReturnsTraversable {
-  val global : Global
+trait Definitions {
+  self : AnalysisComponent =>
   import global._
     
   object DefKinds extends Enumeration {
@@ -61,6 +61,6 @@ trait Definitions extends ReturnsTraversable {
       }
     
   }
-
+//complete name, with pos, and a list of column with 0 or 1 for all features we have
 
 }
