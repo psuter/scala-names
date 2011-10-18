@@ -34,11 +34,13 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new ReturnTypeIs { val ttype = SupportedType.Int;
           						val id = 5 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ReturnTypeIs { val ttype = SupportedType.String;
-          						val id = 6 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          						val id = 6 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new NoParam { 		val id = 7 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
           
       )
       
-      // check all instenciated features for all MethodDef
+      // check all instenciated features for all MethodDef found
+      println
       for(defn <- nc.collectedDefinitions) {
         defn match {
           case md : MethodDef => {
