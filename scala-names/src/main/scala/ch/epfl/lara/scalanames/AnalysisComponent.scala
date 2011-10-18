@@ -23,7 +23,19 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       nc.collect
       
       val featureList : List[MethodFeature { val component : AnalysisComponent.this.type }] = List(
-          new ReturnsTraversable { val id = 1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new ReturnSubtypeOf { val traitSymbol = global.definitions.getClass("scala.collection.Traversable");
+          						val id = 1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnSubtypeOf { val traitSymbol = global.definitions.getClass("scala.AnyRef");
+          						val id = 2 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnTypeIs { val ttype = SupportedType.Unit;
+          						val id = 3 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnTypeIs { val ttype = SupportedType.Boolean;
+          						val id = 4 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnTypeIs { val ttype = SupportedType.Int;
+          						val id = 5 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnTypeIs { val ttype = SupportedType.String;
+          						val id = 6 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          
       )
       
       // check all instenciated features for all MethodDef
