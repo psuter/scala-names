@@ -3,6 +3,7 @@ package ch.epfl.lara.scalanames
 import scala.tools.nsc.{Global,Phase}
 import scala.tools.nsc.plugins.PluginComponent
 import scala.collection.mutable.{Map=>MutableMap,Set=>MutableSet}
+import ch.epfl.lara.scalanames.features._
 
 abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends PluginComponent with Definitions {
   val global : Global
@@ -21,15 +22,11 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       nameCollectors(unit) = nc
       nc.collect
       
-//      val featureList : List[MethodFeature { val featureDefinitions : AnalysisComponent.this.type }] = List(
-//          new ReturnsTraversable { val id = 1 ; val featureDefinitions : AnalysisComponent.this.type = AnalysisComponent.this }
-//      )
-      
       val featureList : List[MethodFeature { val component : AnalysisComponent.this.type }] = List(
           new ReturnsTraversable { val id = 1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
       )
       
-      // check if naming bug was found
+      // check all instenciated features for all MethodDef
       for(defn <- nc.collectedDefinitions) {
         defn match {
           case md : MethodDef => {
@@ -53,11 +50,6 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
         traverse(unit.body)
       }
     }
-    
-    def mapParam(ss: List[Symbol],ts: List[Type], res:List[Parameter]): List[Parameter] = ss match {
-      case x :: xs => mapParam(xs,ts.tail,Parameter(x.name.toString,ts.head,x.isSynthetic,x.pos)::res)
-      case Nil => res
-  }
 
     private val definitions : MutableSet[D] = MutableSet.empty
     def collectedDefinitions : Set[D] = Set(definitions.toSeq : _*)
@@ -74,14 +66,6 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
             Some(Any(d.name.toString, if(mods.isTrait) Trait else Class, mods.isSynthetic, d.pos))
           }
         }
-        /**DefDef (mods: Modifiers, name: TermName, tparams: List[TypeDef], vparamss: List[List[ValDef]], tpt: Tree, rhs: Tree)
-         * extends ValOrDefDef with Product with Serializable 
-         * e.g. foo[A,B](x : Int)(y : A) : String = expr 
-         *     name = "foo"
-         *     tparams = List("A","B")
-         *     vparamss = List(List("x : Int"), List("y : A")) //size 1: empty, size 0: , size > 1
-         *     tpt = "String"
-         *     rhs = [expr...] **/
         case d @ DefDef(mods, name, _, _, _, _) => {
           val isSynth = (
             mods.isSynthetic ||
@@ -91,7 +75,8 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
             mods.isSuperAccessor ||           
             d.name.toString().equals("<init>")
           )         
-          Some(MethodDef(name.toString,mapParam(d.symbol.tpe.params,d.symbol.tpe.paramTypes,List()),d.symbol.tpe.resultType,isSynth,d.pos))
+          //Some(MethodDef(name.toString,mapParam(d.symbol.tpe.params,d.symbol.tpe.paramTypes,List()),d.symbol.tpe.resultType,isSynth,d.pos))
+          Some(MethodDef(name.toString,d,isSynth,d.pos))
         }
         case d @ ModuleDef(mods, _, _) => {
           Some(Any(d.name.toString, Object, mods.isSynthetic, d.pos))
@@ -127,3 +112,4 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
     }
   }
 }
+

@@ -1,5 +1,6 @@
-package ch.epfl.lara.scalanames
+package ch.epfl.lara.scalanames.features
 
+import ch.epfl.lara.scalanames._
 import scala.tools.nsc.Global
 
 trait MethodFeature {

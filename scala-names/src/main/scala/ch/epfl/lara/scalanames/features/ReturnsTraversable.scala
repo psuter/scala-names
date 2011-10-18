@@ -1,4 +1,4 @@
-package ch.epfl.lara.scalanames
+package ch.epfl.lara.scalanames.features
 
 import scala.tools.nsc.Global
 
