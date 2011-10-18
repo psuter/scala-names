@@ -61,14 +61,14 @@ trait Definitions {
     	def rettype: Type = d.symbol.tpe.resultType
     	
     	lazy val args : List[Parameter] = computeArgs      
-    	private def computeArgs: List[Parameter] = mapParam(d.symbol.tpe.params,d.symbol.tpe.paramTypes,List())
+    	private def computeArgs: List[Parameter] = mapParam(d.symbol.tpe.params,d.symbol.tpe.paramTypes,List()) //TODO test behavior needed
         //Used to map symbol and type of parameters of this method to a list of Parameter
     	private def mapParam(ss: List[Symbol],ts: List[Type], res:List[Parameter]): List[Parameter] = ss match {
       		case x :: xs => mapParam(xs,ts.tail,Parameter(x.name.toString,ts.head,x.isSynthetic,x.pos)::res)
       		case Nil => res
     	}
       	//Print prettier the args
-      	def prettyArgs(list:List[Parameter]):String= list match{
+      	private def prettyArgs(list:List[Parameter]):String= list match{
       		case x :: Nil => x.name+":"+x.ptype
       		case x :: xs => x.name+":"+x.ptype+","+prettyArgs(xs)
       		case Nil => ""

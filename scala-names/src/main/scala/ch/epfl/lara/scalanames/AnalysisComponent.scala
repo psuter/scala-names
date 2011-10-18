@@ -35,7 +35,9 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           						val id = 5 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ReturnTypeIs { val ttype = SupportedType.String;
           						val id = 6 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new NoParam { 		val id = 7 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new NoParam { 		val id = 7 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsIf { 		val id = 8 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+
           
       )
       
