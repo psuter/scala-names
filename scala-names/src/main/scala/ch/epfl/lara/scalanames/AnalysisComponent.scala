@@ -24,19 +24,24 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       
       val featureList : List[MethodFeature { val component : AnalysisComponent.this.type }] = List(
           new ReturnSubtypeOf { val traitSymbol = global.definitions.getClass("scala.collection.Traversable");
-          						val id = 1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          							   val id = 1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ReturnSubtypeOf { val traitSymbol = global.definitions.getClass("scala.AnyRef");
-          						val id = 2 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          							   val id = 2 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ReturnTypeIs { val ttype = SupportedType.Unit;
-          						val id = 3 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          							   val id = 3 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ReturnTypeIs { val ttype = SupportedType.Boolean;
-          						val id = 4 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          							   val id = 4 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ReturnTypeIs { val ttype = SupportedType.Int;
-          						val id = 5 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          							   val id = 5 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ReturnTypeIs { val ttype = SupportedType.String;
-          						val id = 6 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new NoParam { 		val id = 7 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsIf { 		val id = 8 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          							   val id = 6 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new NoParam { 			   val id = 7 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsIf { 			   val id = 8 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsWhile {		   val id = 9 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsTryCatch {	   val id = 10 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsPatternMatching {val id = 11 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ThrowException {		   val id = 12 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+
 
           
       )
