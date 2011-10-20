@@ -40,9 +40,8 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new ContainsWhile {		   val id = 9 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ContainsTryCatch {	   val id = 10 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ContainsPatternMatching {val id = 11 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ThrowException {		   val id = 12 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
-
-
+          new ThrowException {		   val id = 12 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsCurrified{			   val id = 12 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
           
       )
       
