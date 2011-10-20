@@ -6,31 +6,23 @@ trait ContainsIf extends MethodFeature {
 
   val name = "Method contains IF statement."
   
-  def appliesTo(methodDef: MethodDef): Boolean = { 
-    
-    def apply(t: Tree): Boolean = t match {
-      case Block(stats,_) => applyAll(stats) 
-      case CaseDef(pat,guard,body) => apply(pat) || apply(guard) || apply(body)
-      case DefDef(_,_,_,_,_,rhs) => apply(rhs) //do we need to also catch If into parameters ?
-      case Function(_,body) => apply(body)
-      case i:If => true
-      //case LabelDef
-      case Match(selector,cases) => apply(selector) || applyAll(cases)
-      //case ModuleDef
-      //case PackageDef
-      case Return(expr) => apply(expr)
-      case Throw(expr) => apply(expr)
-      case Try(block,catches,finalizer) => apply(block) || applyAll(catches) || apply(finalizer)
-      case TypeDef(_,_,_,rhs) => apply(rhs) //do we need to also catch If into parameters ?
-      case ValDef(_,_,_,rhs) => apply(rhs)
-      case _ => false
+  def mkIfTraverser = new Traverser {
+	var foundIf : Boolean = false
+
+	override def traverse(tree : Tree) : Unit = {
+	  if(!foundIf) {
+      	tree match {
+      	    case LabelDef(_,_,If(cond,then,_)) => {traverse(cond); traverse(then)} //Skip If into while condition
+      		case i : If => foundIf = true
+      		case _ => super.traverse(tree) //traverse deeper
+      	}
+      }
     }
-    
-    def applyAll(ts: List[Tree]): Boolean = ts match {
-      case x :: xs => apply(x) || applyAll(xs)
-      case Nil => false
-    }
-    
-    apply(methodDef.d.rhs)
+  }
+
+  def appliesTo(methodDef : MethodDef) : Boolean = {
+    val ifTraverser = mkIfTraverser
+    ifTraverser.traverse(methodDef.d.rhs)
+    ifTraverser.foundIf
   }
 }
