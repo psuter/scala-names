@@ -12,7 +12,7 @@ trait ContainsIf extends MethodFeature {
 	override def traverse(tree : Tree) : Unit = {
 	  if(!foundIf) {
       	tree match {
-      	    case LabelDef(_,_,If(cond,then,_)) => {traverse(cond); traverse(then)} //Skip If into while condition
+      	    case LabelDef(_,_,If(cond,then,_)) => {traverse(cond); traverse(then)} //Skip If created by the compiler into the while statement
       		case i : If => foundIf = true
       		case _ => super.traverse(tree) //traverse deeper
       	}
