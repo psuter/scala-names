@@ -41,8 +41,9 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new ContainsTryCatch {	   val id = 10 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ContainsPatternMatching {val id = 11 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ThrowException {		   val id = 12 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsCurrified{			   val id = 12 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
-          
+          new IsCurrified{			   val id = 13 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsSelfRecursion{   val id = 14 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+
       )
       
       // check all instenciated features for all MethodDef found
