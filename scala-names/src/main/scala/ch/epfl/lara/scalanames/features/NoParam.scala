@@ -11,6 +11,4 @@ trait NoParam extends MethodFeature {
       case 1 => methodDef.d.vparamss.head.isEmpty
       case _ => false
     }
-
-  
 }

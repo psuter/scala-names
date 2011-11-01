@@ -22,27 +22,30 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       nameCollectors(unit) = nc
       nc.collect
       
+      import global.definitions.{ getClass => gc }
+      
       val featureList : List[MethodFeature { val component : AnalysisComponent.this.type }] = List(
-          new ReturnSubtypeOf { val traitSymbol = global.definitions.getClass("scala.collection.Traversable");
-          							   val id = 1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ReturnSubtypeOf { val traitSymbol = global.definitions.getClass("scala.AnyRef");
-          							   val id = 2 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ReturnTypeIs { val ttype = SupportedType.Unit;
-          							   val id = 3 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ReturnTypeIs { val ttype = SupportedType.Boolean;
-          							   val id = 4 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ReturnTypeIs { val ttype = SupportedType.Int;
-          							   val id = 5 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ReturnTypeIs { val ttype = SupportedType.String;
-          							   val id = 6 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new NoParam { 			   val id = 7 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsIf { 			   val id = 8 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsWhile {		   val id = 9 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsTryCatch {	   val id = 10 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsPatternMatching {val id = 11 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ThrowException {		   val id = 12 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsCurrified{			   val id = 13 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsSelfRecursion{   val id = 14 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new ReturnSubtypeOf { val traitSymbol = gc("scala.collection.Traversable");
+          							   val id =  1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnSubtypeOf { val traitSymbol = gc("scala.AnyRef");
+          							   val id =  2 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnTypeIs { val traitSymbol = gc("scala.Unit");
+          							   val id =  3 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnTypeIs { val traitSymbol = gc("scala.Boolean");
+          							   val id =  4 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnTypeIs { val traitSymbol = gc("scala.Int");
+          							   val id =  5 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnTypeIs { val traitSymbol = gc("java.lang.String");
+          							   val id =  6 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new NoParam { 			   val id =  7 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new HasNoParentesis {        val id =  8 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsIf { 			   val id =  9 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsWhile {		   val id = 10 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsTryCatch {	   val id = 11 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsPatternMatching {val id = 12 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ThrowException {		   val id = 13 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsCurrified{			   val id = 14 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsSelfRecursion{   val id = 15 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
       )
       
@@ -51,7 +54,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       for(defn <- nc.collectedDefinitions) {
         defn match {
           case md : MethodDef => {
-            println(md.name + " " + featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" "))
+            println(md.name + " " + featureList.map(f => if(f.appliesTo(md) && !md.synthetic) 1 else 0).mkString(" "))
           }
           case _ => ;
         }

@@ -12,8 +12,12 @@ trait ContainsIf extends MethodFeature {
 	override def traverse(tree : Tree) : Unit = {
 	  if(!foundIf) {
       	tree match {
-      	    case LabelDef(_,_,If(cond,then,_)) => {traverse(cond); traverse(then)} //Skip If created by the compiler into the while statement
-      	    case CaseDef(_,guard,body) => if(guard.isEmpty) traverse(body) else foundIf = true //Catch guard into pattern matching
+      	    //Skip If created by the compiler into the while statement
+      	    case LabelDef(_,_,If(cond,then,_)) => {traverse(cond); traverse(then)} 
+      	    //Skip If created by the compiler into doWhile statement
+      	    case LabelDef(_,_,b@Block(stats,If(cond,_,_))) => super.traverse(Block(stats,cond))
+      	    //Catch guard into pattern matching (dropped)
+      	    // case CaseDef(_,guard,body) => if(guard.isEmpty) traverse(body) else foundIf = true 
       		case i : If => foundIf = true
       		case _ => super.traverse(tree) //traverse deeper
       	}
