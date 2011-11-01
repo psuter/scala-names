@@ -15,11 +15,13 @@ trait ContainsIf extends MethodFeature {
       	    //Skip If created by the compiler into the while statement
       	    case LabelDef(_,_,If(cond,then,_)) => {traverse(cond); traverse(then)} 
       	    //Skip If created by the compiler into doWhile statement
-      	    case LabelDef(_,_,b@Block(stats,If(cond,_,_))) => super.traverse(Block(stats,cond))
+      	    case LabelDef(_,_,Block(stats,If(cond,_,_))) => super.traverse(Block(stats,cond))
       	    //Catch guard into pattern matching (dropped)
       	    // case CaseDef(_,guard,body) => if(guard.isEmpty) traverse(body) else foundIf = true 
+      	    //Standard IF statement
       		case i : If => foundIf = true
-      		case _ => super.traverse(tree) //traverse deeper
+      		//traverse deeper
+      		case _ => super.traverse(tree)
       	}
       }
     }

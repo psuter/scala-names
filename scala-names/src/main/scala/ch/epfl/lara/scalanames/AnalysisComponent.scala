@@ -4,6 +4,8 @@ import scala.tools.nsc.{Global,Phase}
 import scala.tools.nsc.plugins.PluginComponent
 import scala.collection.mutable.{Map=>MutableMap,Set=>MutableSet}
 import ch.epfl.lara.scalanames.features._
+import java.io.BufferedWriter
+import java.io.FileWriter
 
 abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends PluginComponent with Definitions {
   val global : Global
@@ -16,6 +18,8 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
 
   class AnalysisPhase(prev : Phase) extends StdPhase(prev) {
     private val nameCollectors : MutableMap[CompilationUnit,NameCollector] = MutableMap.empty
+    val output: String = ".\\output.txt"
+    lazy val out = new BufferedWriter(new FileWriter(output, true))
 
     def apply(unit : CompilationUnit) : Unit = {
       val nc = new NameCollector(unit)
@@ -51,18 +55,33 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       
       // check all instenciated features for all MethodDef found
       println
+      
       for(defn <- nc.collectedDefinitions) {
         defn match {
           case md : MethodDef => {
-            println(md.name + " " + featureList.map(f => if(f.appliesTo(md) && !md.synthetic) 1 else 0).mkString(" "))
+            if(!md.synthetic) {
+              try{
+                val str = md.name + " " + featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" ") + "\n"
+                
+               //Print into file
+               /* out.write(str)
+                out.flush 
+               */
+                print(str)
+              } catch {
+              	case e => println("I/O error "+e.toString()+" during: "+md.name + " " + featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" "))
+              }
+            }
           }
-          case _ => ;
+          case _ =>
         }
         
       }
     }
-  }
 
+  }
+  
+  
   def newPhase(prev : Phase) = new AnalysisPhase(prev)
 
   class NameCollector(val unit : CompilationUnit) extends Traverser {
