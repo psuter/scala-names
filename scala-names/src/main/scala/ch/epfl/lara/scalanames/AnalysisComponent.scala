@@ -49,7 +49,12 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new ContainsPatternMatching {val id = 12 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ThrowException {		   val id = 13 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new IsCurrified{			   val id = 14 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsSelfRecursion{   val id = 15 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new ContainsSelfRecursion{   val id = 15 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsVerb{   			   val id = 16 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsNoun{ 				   val id = 17 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsCamelPhrase{ 		   val id = 19 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsAcronym{		   val id = 20 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
       )
       
