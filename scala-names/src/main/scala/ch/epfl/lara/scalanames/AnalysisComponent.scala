@@ -54,7 +54,8 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new IsNoun{ 				   val id = 17 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new IsCamelPhrase{ 		   val id = 19 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsAcronym{		   val id = 20 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new ContainsAcronym{		   val id = 20 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new AbstractPhrase{ 	   	   val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
       )
       

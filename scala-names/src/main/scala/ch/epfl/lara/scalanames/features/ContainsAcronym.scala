@@ -6,6 +6,10 @@ trait ContainsAcronym extends IsCamelPhrase {
   
   override val name = "Method name contains an acronym"
     
+  /**
+   * Acronym are defined as a list of capital letter or digit 
+   */
+    
   override def appliesTo(methodDef: MethodDef): Boolean = {
     val ws = splitWord(methodDef.name,"",List())
     if(ws.length > 1){
@@ -24,4 +28,8 @@ trait ContainsAcronym extends IsCamelPhrase {
     case x :: xs if(current != "" && x.length()!=1)=> reconstructAcronym(xs,"",res:::List(current,x)) //inside camel phrase. End of an acronym
     case x :: xs => reconstructAcronym(xs,current,res:::List(x)) //inside camel phrase. New word that is not an acronym   
   }
+  
+  //For a specific word, return true if this word is an acronym
+  def isAcronym(word: String):Boolean = word.toUpperCase() == word 
+
 }
