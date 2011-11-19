@@ -25,7 +25,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
 
     val wordNetPath : String = "C:\\Program Files\\WordNet\\2.1\\dict" 
     System.setProperty("wordnet.database.dir", wordNetPath)
-    val db : WordNetDatabase = WordNetDatabase.getFileInstance()
+    lazy val db : WordNetDatabase = WordNetDatabase.getFileInstance()
 
     def apply(unit : CompilationUnit) : Unit = {
       val nc = new NameCollector(unit)
@@ -64,7 +64,8 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new IsCamelPhrase{ 		   val id = 19 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ContainsAcronym{		   val id = 20 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new AbstractPhrase{ val database = db ;
-          							   val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          							   val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsReturnTypeInName{val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
       )
       

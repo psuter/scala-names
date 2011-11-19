@@ -21,7 +21,7 @@ trait IsCamelPhrase extends MethodFeature {
     else {
       val head = name.head
       if (head.isLetter){
-        if(head.isUpperCase) splitWord(name.tail,head.toString,res:::List(current))
+        if(head.isUpperCase) splitWord(name.tail,head.toString,if(current=="")res else res:::List(current))
         else splitWord(name.tail,current+head,res)  
       } else if (head.isDigit){
         splitWord(name.tail,head.toString(),res:::List(current))
