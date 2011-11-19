@@ -6,6 +6,7 @@ import scala.collection.mutable.{Map=>MutableMap,Set=>MutableSet}
 import ch.epfl.lara.scalanames.features._
 import java.io.BufferedWriter
 import java.io.FileWriter
+import edu.smu.tspell.wordnet.WordNetDatabase
 
 abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends PluginComponent with Definitions {
   val global : Global
@@ -18,8 +19,13 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
 
   class AnalysisPhase(prev : Phase) extends StdPhase(prev) {
     private val nameCollectors : MutableMap[CompilationUnit,NameCollector] = MutableMap.empty
+    
     val output: String = ".\\output.txt"
     lazy val out = new BufferedWriter(new FileWriter(output, true))
+
+    val wordNetPath : String = "C:\\Program Files\\WordNet\\2.1\\dict" 
+    System.setProperty("wordnet.database.dir", wordNetPath)
+    val db : WordNetDatabase = WordNetDatabase.getFileInstance()
 
     def apply(unit : CompilationUnit) : Unit = {
       val nc = new NameCollector(unit)
@@ -50,12 +56,15 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new ThrowException {		   val id = 13 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new IsCurrified{			   val id = 14 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ContainsSelfRecursion{   val id = 15 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsVerb{   			   val id = 16 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsNoun{ 				   val id = 17 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsVerb{ val database = db ;
+          							   val id = 16 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsNoun{ val database = db ;
+          							   val id = 17 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new IsCamelPhrase{ 		   val id = 19 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ContainsAcronym{		   val id = 20 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new AbstractPhrase{ 	   	   val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new AbstractPhrase{ val database = db ;
+          							   val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
       )
       

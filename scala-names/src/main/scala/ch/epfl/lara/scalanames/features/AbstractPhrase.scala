@@ -7,15 +7,11 @@ trait AbstractPhrase extends ContainsAcronym {
   
   override val name = "Method name match abstract phrase construction"
     
-    private val wordNetPath : String = "C:\\Program Files\\WordNet\\2.1\\dict" 
-    protected lazy val database = WordNetDatabase.getFileInstance
-    //TODO externalize wordNet into AnalysisComp
+  val database : WordNetDatabase
     
   override def appliesTo(methodDef: MethodDef): Boolean = {
-    System.setProperty("wordnet.database.dir", wordNetPath)
 
-    val cp = reconstructAcronym(splitWord(methodDef.name,"",List()),"",List())
-    
+    val cp = reconstructAcronym(splitWord(methodDef.name,"",List()),"",List())    
     if(cp.length > 0) validAbstractPhrase(cp) else false
   }
   

@@ -6,14 +6,11 @@ trait IsVerb extends MethodFeature {
   import component._
   import component.global._
 
-    private val wordNetPath : String = "C:\\Program Files\\WordNet\\2.1\\dict" 
+    val database : WordNetDatabase
+    
     val name = "Method name is a verb"
-    protected lazy val database = WordNetDatabase.getFileInstance
-
-      //TODO externalize wordNet into AnalysisComp
       
-  protected def feature(methodDef:MethodDef): Boolean = {
-       
+  def appliesTo(methodDef: MethodDef): Boolean = { 
     /* Contains a verb
      * contains = true
      * jumping  = true
@@ -26,12 +23,6 @@ trait IsVerb extends MethodFeature {
     
     //if(verb.length > 0) true else false
     verb.length > 0
-  }
-
-      
-  def appliesTo(methodDef: MethodDef): Boolean = { 
-        System.setProperty("wordnet.database.dir", wordNetPath)
-        feature(methodDef)
   }
 
 }
