@@ -65,7 +65,17 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new ContainsAcronym{		   val id = 20 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new AbstractPhrase{ val database = db ;
           							   val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsReturnTypeInName{val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new ContainsReturnTypeInName{val id = 22 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new NameContains{ val pattern = "is" ;
+           							   val id = 23 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new NameContains{ val pattern = "get" ;
+           							   val id = 24 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new NameContains{ val pattern = "set" ;
+           							   val id = 25 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new NameContains{ val pattern = "contains" ;
+           							   val id = 26 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsValidJavaName{		   val id = 27 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          
 
       )
       

@@ -10,21 +10,29 @@ trait ContainsReturnTypeInName extends ContainsAcronym {
   override def appliesTo(methodDef: MethodDef): Boolean = {
     
 	val cp = reconstructAcronym(splitWord(methodDef.name,"",List()),"",List())
-    
-	val typeName = methodDef.d.symbol.tpe.resultType.toString()
+    	
+	val typeName = (unfoldMethodType(methodDef.d.symbol.tpe.resultType)).typeConstructor
 	
-	containsReturnTypeInName(cp,splitWord(removeSpecialCharOfType(typeName),"",List()))
+	//TODO name class, puis appliquer une des méthod pr retriver le nom + à la place de :plus
+	//TODO K-mean, PCA
+	
+	//println(typeName+": "+removeSpecialCharOfType(typeName.toString()))
+	
+	val splitType = splitWord(removeSpecialCharOfType(typeName.toString()),"",List())
+	
+	if(splitType.isEmpty) false //May be wrong for type with special character, like _
+	else containsReturnTypeInName(cp,splitType)
+	
+  }
+  
+  def unfoldMethodType(tt: Type):Type = tt match {
+    case MethodType(ls,rt) => unfoldMethodType(rt)
+	case x => x
   }
   
   def removeSpecialCharOfType(tn: String): String = {
-    //remove dot
-	val stn = if(tn.contains(".")) tn.split("\\u002E").last else tn
-	//remove brackets
-	val stn2 = if(stn.contains("[")) (stn.split("\\u005B")).head else stn
-	//remove parenthesis
-	val stn3 = if(stn2.contains(")")) stn2.split("\\u0029").last else stn2
-	
-	stn3
+    //remove java package dot
+	if(tn.contains(".")) tn.split("\\u002E").last else tn
   }
   
   def containsReturnTypeInName(mn: List[String], tn:List[String]): Boolean = {
