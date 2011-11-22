@@ -142,10 +142,10 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
             mods.isParamAccessor ||
             mods.isCaseAccessor ||
             mods.isSuperAccessor ||           
-            d.name.toString().equals("<init>")
-          )         
-          //Some(MethodDef(name.toString,mapParam(d.symbol.tpe.params,d.symbol.tpe.paramTypes,List()),d.symbol.tpe.resultType,isSynth,d.pos))
-          Some(MethodDef(name.toString,d,isSynth,d.pos))
+            d.name.toString().equals("<init>") ||
+            d.name.debugString().equals("$init$")
+          )
+          Some(MethodDef(name.debugString(),d,isSynth,d.pos))
         }
         case d @ ModuleDef(mods, _, _) => {
           Some(Any(d.name.toString, Object, mods.isSynthetic, d.pos))
