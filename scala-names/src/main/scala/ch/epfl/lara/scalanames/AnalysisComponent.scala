@@ -86,16 +86,16 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
         defn match {
           case md : MethodDef => {
             if(!md.synthetic) {
+              val str = md.UniqueName + " " + featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" ") + "\n"
+
               try{
-                val str = md.name + " " + featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" ") + "\n"
                 
                //Print into file
-               /* out.write(str)
-                out.flush 
-               */
+                out.write(str)
+                out.flush                
                 print(str)
               } catch {
-              	case e => println("I/O error "+e.toString()+" during: "+md.name + " " + featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" "))
+              	case e => print("I/O error "+e.toString()+" during: "+str)
               }
             }
           }
@@ -167,7 +167,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       optDfn match {
         case Some(dfn) => {
           println(dfn)
-          // println("Mods : " + tree.asInstanceOf[MemberDef].mods)
+          // ln("Mods : " + tree.asInstanceOf[MemberDef].mods)
           definitions += dfn
 
           // To avoid collecting arguments of synthetic methods, for instance.

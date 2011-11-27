@@ -6,7 +6,7 @@ trait ReturnSubtypeOf extends MethodFeature {
   
   val traitSymbol : Symbol
   
-  lazy val name = "Method returns a subtype of "+traitSymbol.toString
+  lazy val name = "Method returns a subtype of "+traitSymbol.toString+"."
 
   def appliesTo(methodDef: MethodDef): Boolean = {
     methodDef.rettype.baseType(traitSymbol) != NoType

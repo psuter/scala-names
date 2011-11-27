@@ -11,9 +11,8 @@ trait ContainsReturnTypeInName extends ContainsAcronym {
     
 	val cp = reconstructAcronym(splitWord(methodDef.name,"",List()),"",List())
     	
-	val typeName = (unfoldMethodType(methodDef.d.symbol.tpe.resultType)).typeConstructor
+	val typeName = (unfoldMethodType(methodDef.rettype)).typeConstructor
 	
-	//TODO name class, puis appliquer une des méthod pr retriver le nom + à la place de :plus
 	//TODO K-mean, PCA
 	
 	//println(typeName+": "+removeSpecialCharOfType(typeName.toString()))

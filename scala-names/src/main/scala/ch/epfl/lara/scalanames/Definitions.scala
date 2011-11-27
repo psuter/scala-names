@@ -57,6 +57,8 @@ trait Definitions {
       
     	override def toString : String = 
     		(if(synthetic) "(S) " else "    ")+DefKinds.Def.toString+" "+name+"("+prettyArgs(args)+"):"+rettype+" @"+position
+    		
+    	def UniqueName: String = name+"_@"+position
   
     	def rettype: Type = d.symbol.tpe.resultType
     	

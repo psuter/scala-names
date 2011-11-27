@@ -6,7 +6,7 @@ trait ReturnTypeIs extends MethodFeature {
   
   val traitSymbol : Symbol
   
-  lazy val name = "Method return is of type: "+traitSymbol.toString()
+  lazy val name = "Method return is of type: "+traitSymbol.toString()+"."
 
   def appliesTo(methodDef: MethodDef): Boolean = { 
     traitSymbol.tpe =:= methodDef.rettype
