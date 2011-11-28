@@ -20,7 +20,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
   class AnalysisPhase(prev : Phase) extends StdPhase(prev) {
     private val nameCollectors : MutableMap[CompilationUnit,NameCollector] = MutableMap.empty
     
-    val output: String = ".\\output.txt"
+    val output: String = ".\\testOutput.txt"
     lazy val out = new BufferedWriter(new FileWriter(output, true))
 
     val wordNetPath : String = "C:\\Program Files\\WordNet\\2.1\\dict" 
@@ -74,7 +74,10 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
            							   val id = 25 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameContains{ val pattern = "contains" ;
            							   val id = 26 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsValidJavaName{		   val id = 27 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new IsValidJavaName{		   val id = 27 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsOperator{		 	   val id = 28 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+
+           							   
           
 
       )
@@ -89,10 +92,9 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
               val str = md.UniqueName + " " + featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" ") + "\n"
 
               try{
-                
-               //Print into file
-                out.write(str)
-                out.flush                
+                //Print into file
+                //out.write(str)
+                //out.flush                
                 print(str)
               } catch {
               	case e => print("I/O error "+e.toString()+" during: "+str)
