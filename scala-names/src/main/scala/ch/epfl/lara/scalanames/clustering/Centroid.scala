@@ -1,4 +1,4 @@
-package clustering
+package ch.epfl.lara.scalanames.clustering
 
 class Centroid(i:Int,size:Int) {
     private var pos : List[Double] = init(size)

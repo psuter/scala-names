@@ -1,4 +1,4 @@
-package clustering
+package ch.epfl.lara.scalanames.clustering
 import java.io.BufferedReader
 import java.io.FileReader
 import scala.collection.mutable.HashMap
@@ -17,39 +17,6 @@ class Kmeans {
   val cs : List[Centroid] = List()			  //The list of all clusters
   
   val newCentroid = new HashMap[Int,List[Double]] //Val used for optimization of update phase
-  
-  //TODO add args for specifying nb cluster, inputfile and nb steps
-  def main(args: Array[String]):Unit = {
-
-    //Retrieve data sample from input file or exit
-    try{
-      buildData
-    }catch{
-      case e => println("Unable to retrieve data: "+e.toString); System.exit(0)
-    }
-
-    //Build the centroids
-    dimSize = data.elements.next()._2.length
-    observations = data.elements.length
-    cs::buildCentroid(cluster,dimSize)
-
-    //Assign to every elements a cluster at random
-    randomPartition
-    
-    //Run the algorithm
-    //TODO add possibility to exit after X steps
-    var i =0
-    while(update){
-      println("round :"+i)
-      assignement
-      i=i+1
-    }
-    
-    //print result
-    for(elem <- clusteredData.elements){
-      println(elem._1 +"\t"+elem._2)
-    }
-  }
   
   def buildCentroid(nb:Int,size:Int):List[Centroid]= nb match {
     case 0 => List()
@@ -147,5 +114,37 @@ class Kmeans {
     for(css <- csCopy.zip(cs)){if(!css._1.equals(css._2))return true};false
   }
   
+  //TODO add args for specifying nb cluster, inputfile and nb steps
+  def main(args: Array[String]):Unit = {
+
+    //Retrieve data sample from input file or exit
+    try{
+      buildData
+    }catch{
+      case e => println("Unable to retrieve data: "+e.toString); System.exit(0)
+    }
+
+    //Build the centroids
+    dimSize = data.first._2.length
+    observations = data.elements.length
+    cs::buildCentroid(cluster,dimSize)
+
+    //Assign to every elements a cluster at random
+    randomPartition
+    
+    //Run the algorithm
+    //TODO add possibility to exit after X steps
+    var i =0
+    while(update){
+      println("round :"+i)
+      assignement
+      i=i+1
+    }
+    
+    //print result
+    for(elem <- clusteredData.elements){
+      println(elem._1 +"\t"+elem._2)
+    }
+  }
 }
 
