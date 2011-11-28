@@ -1,12 +1,13 @@
 package ch.epfl.lara.scalanames.clustering
+
 import java.io.BufferedReader
 import java.io.FileReader
 import scala.collection.mutable.HashMap
 import scala.util.Random
 
-class Kmeans {
+object Kmeans {
   
-  val dataPath = "output.txt"
+  val dataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\output.txt"
    
   var cluster = 3 							//Number of wanted clusters
   var dimSize = 0 							//The dimension size of observations 
@@ -28,11 +29,18 @@ class Kmeans {
     val buffer = new BufferedReader(new FileReader(dataPath));
 
 	def apply : Unit = buffer.readLine() match {
-	  case "\n" =>
-	  case str => { val entry : List[String] = split(str) ; data.put(entry.head,convert(entry.tail)) } 
+	  case null =>
+	  case str => { 
+	    //println(str)
+	    val entry : List[String] = split(str) 
+	    data.put(entry.head,convert(entry.tail)) 
+	    apply
+	  } 
 	}
 	def split(str: String): List[String] = str.split("\\s").toList
 	def convert(ls: List[String]): List[Int] = ls.map(s=> s.toInt)
+	
+	apply
 	
   }
   
@@ -115,7 +123,7 @@ class Kmeans {
   }
   
   //TODO add args for specifying nb cluster, inputfile and nb steps
-  def main(args: Array[String]):Unit = {
+  def main(args: Array[String]) = {
 
     //Retrieve data sample from input file or exit
     try{
@@ -125,26 +133,30 @@ class Kmeans {
     }
 
     //Build the centroids
-    dimSize = data.first._2.length
-    observations = data.elements.length
-    cs::buildCentroid(cluster,dimSize)
+    if(data.isEmpty) {
+      println("data is empty, system will exit."); System.exit(0)
+    } else {
+    	dimSize = data.first._2.length
+    	observations = data.elements.length
+    	cs::buildCentroid(cluster,dimSize)
 
-    //Assign to every elements a cluster at random
-    randomPartition
+    	//Assign to every elements a cluster at random
+    	randomPartition
     
-    //Run the algorithm
-    //TODO add possibility to exit after X steps
-    var i =0
-    while(update){
-      println("round :"+i)
-      assignement
-      i=i+1
-    }
+    	//Run the algorithm
+    	//TODO add possibility to exit after X steps
+    	var i =0
+    	while(update){
+    		println("round :"+i)
+    		assignement
+    		i=i+1
+    	}
     
-    //print result
-    for(elem <- clusteredData.elements){
-      println(elem._1 +"\t"+elem._2)
-    }
+    	//print result
+    	for(elem <- clusteredData.elements){
+    		println(elem._2 +"\t"+elem._1)
+    	}
+  }
   }
 }
 
