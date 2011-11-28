@@ -15,7 +15,7 @@ object Kmeans {
   val data = new HashMap[String,List[Int]]	//The observation set retrieved from the input file
   
   val clusteredData = new HashMap[String,Int] //The observation set classified by it's cluster
-  val cs : List[Centroid] = List()			  //The list of all clusters
+  var cs : List[Centroid] = List()			  //The list of all clusters
   
   val newCentroid = new HashMap[Int,List[Double]] //Val used for optimization of update phase
   
@@ -61,7 +61,7 @@ object Kmeans {
       for(cluster <- cs){
         val distance = cluster.distanceFrom(elem._2)
         if (minMean > distance) {
-          clusterNumber = cluster.j
+          clusterNumber = cluster.i
           minMean = distance
         }
       }
@@ -75,7 +75,8 @@ object Kmeans {
   
   def update:Boolean = {
     
-    val csCopy = cs //Copy of the cluster before the update
+    val csCopy : List[Centroid] = cs.map(_.copy) //Copy of the cluster before the update
+    println(csCopy)
     
     //Initialize a list of double of size dimSize
     def newD(dimSize:Int):List[Double]= dimSize match {
@@ -117,9 +118,17 @@ object Kmeans {
     //Divide by the cardinality of the number of observation
     centers.foreach(divide)
     //Update the centroid
-    for (centroid <- cs) centroid.updatePos(centers.apply(centroid.j))  
+    	// cs = centers.toList.sort((c1,c2)=> c1._1 < c2._1).foreach(c1 => Centroid(c1._1,c1._2))
+    for (centroid <- cs) centroid.updatePos(centers.apply(centroid.i))  
     //If a centroid was updated, then return true
-    for(css <- csCopy.zip(cs)){if(!css._1.equals(css._2))return true};false
+    val updated = csCopy != cs
+//    var updated : Boolean = false
+//    for(css <- csCopy.zip(cs)){
+//      if(!css._1.equals(css._2)) updated = true
+//    }
+    println("cs:"+cs+"\ncsCopy:"+csCopy+"\nResult:"+updated)
+    updated
+    //FIXME always return true
   }
   
   //TODO add args for specifying nb cluster, inputfile and nb steps
@@ -138,7 +147,7 @@ object Kmeans {
     } else {
     	dimSize = data.first._2.length
     	observations = data.elements.length
-    	cs::buildCentroid(cluster,dimSize)
+    	cs = buildCentroid(cluster,dimSize)
 
     	//Assign to every elements a cluster at random
     	randomPartition
@@ -153,6 +162,7 @@ object Kmeans {
     	}
     
     	//print result
+    	println("---------RESULTS--------")
     	for(elem <- clusteredData.elements){
     		println(elem._2 +"\t"+elem._1)
     	}
