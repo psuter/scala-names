@@ -21,7 +21,7 @@ class Centroid(val i:Int, size:Int) {
         for(ps <- getPos.zip(c.getPos)){
         	if(ps._1!=ps._2)e = false
         }
-        println(this +" ==?== "+c +" is "+e)
+        //println(this +" ==?== "+c +" is "+e)
         e
       }      
       case _ => false

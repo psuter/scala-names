@@ -7,7 +7,8 @@ import scala.util.Random
 
 object Kmeans {
   
-  val dataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\output.txt"
+  val libDataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\libOutput.txt"
+  val testDataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\testOutput.txt"
    
   var cluster = 3 							//Number of wanted clusters
   var dimSize = 0 							//The dimension size of observations 
@@ -19,14 +20,15 @@ object Kmeans {
   
   val newCentroid = new HashMap[Int,List[Double]] //Val used for optimization of update phase
   
+  //Initialize the centroids 
   def buildCentroid(nb:Int,size:Int):List[Centroid]= nb match {
     case 0 => List()
     case i => new Centroid(i,size)::buildCentroid(i-1,size)
   }
   
-  def buildData:Unit = {
+  def buildData(path:String):Unit = {
     
-    val buffer = new BufferedReader(new FileReader(dataPath));
+    val buffer = new BufferedReader(new FileReader(path));
 
 	def apply : Unit = buffer.readLine() match {
 	  case null =>
@@ -38,7 +40,7 @@ object Kmeans {
 	  } 
 	}
 	def split(str: String): List[String] = str.split("\\s").toList
-	def convert(ls: List[String]): List[Int] = ls.map(s=> s.toInt)
+	def convert(ls: List[String]): List[Int] = ls.map(_.toInt)
 	
 	apply
 	
@@ -76,7 +78,7 @@ object Kmeans {
   def update:Boolean = {
     
     val csCopy : List[Centroid] = cs.map(_.copy) //Copy of the cluster before the update
-    println(csCopy)
+    //println(csCopy)
     
     //Initialize a list of double of size dimSize
     def newD(dimSize:Int):List[Double]= dimSize match {
@@ -92,7 +94,7 @@ object Kmeans {
     //Initiate once the empty List
     if(newCentroid.isEmpty) addEmptyCluser(cluster,newD(dimSize))
     //A copy of the empty centroid 
-    val centers = newCentroid 
+    val centers : HashMap[Int,List[Double]] = newCentroid.clone()
     
     def sum(ls1:List[Int],ls2:List[Double]): List[Double] = ls1 match {
       case Nil => List()
@@ -118,17 +120,11 @@ object Kmeans {
     //Divide by the cardinality of the number of observation
     centers.foreach(divide)
     //Update the centroid
-    	// cs = centers.toList.sort((c1,c2)=> c1._1 < c2._1).foreach(c1 => Centroid(c1._1,c1._2))
-    for (centroid <- cs) centroid.updatePos(centers.apply(centroid.i))  
+    for (centroid <- cs) centroid.updatePos(centers.apply(centroid.i))
+    
     //If a centroid was updated, then return true
-    val updated = csCopy != cs
-//    var updated : Boolean = false
-//    for(css <- csCopy.zip(cs)){
-//      if(!css._1.equals(css._2)) updated = true
-//    }
-    println("cs:"+cs+"\ncsCopy:"+csCopy+"\nResult:"+updated)
-    updated
-    //FIXME always return true
+    //println("cs:"+cs+"\ncsCopy:"+csCopy+"\nResult:"+(csCopy != cs))
+    csCopy != cs
   }
   
   //TODO add args for specifying nb cluster, inputfile and nb steps
@@ -136,7 +132,7 @@ object Kmeans {
 
     //Retrieve data sample from input file or exit
     try{
-      buildData
+      buildData(testDataPath)
     }catch{
       case e => println("Unable to retrieve data: "+e.toString); System.exit(0)
     }
@@ -157,6 +153,9 @@ object Kmeans {
     	var i =0
     	while(update){
     		println("round :"+i)
+    		if(i>10000){
+    		  println(cs)
+    		}
     		assignement
     		i=i+1
     	}
