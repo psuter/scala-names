@@ -20,8 +20,9 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
   class AnalysisPhase(prev : Phase) extends StdPhase(prev) {
     private val nameCollectors : MutableMap[CompilationUnit,NameCollector] = MutableMap.empty
     
-    val output: String = ".\\testOutput.txt"
-    lazy val out = new BufferedWriter(new FileWriter(output, true))
+    val testOutput = ".\\testOutput.txt"
+    val libOutput = ".\\libOutput.txt"
+    lazy val out = new BufferedWriter(new FileWriter(testOutput, true))
 
     val wordNetPath : String = "C:\\Program Files\\WordNet\\2.1\\dict" 
     System.setProperty("wordnet.database.dir", wordNetPath)
@@ -65,20 +66,21 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new ContainsAcronym{		   val id = 20 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new AbstractPhrase{ val database = db ;
           							   val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsReturnTypeInName{val id = 22 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameContains{ val pattern = "is" ;
-           							   val id = 23 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+           							   val id = 22 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameContains{ val pattern = "get" ;
-           							   val id = 24 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+           							   val id = 23 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameContains{ val pattern = "set" ;
-           							   val id = 25 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+           							   val id = 24 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameContains{ val pattern = "contains" ;
-           							   val id = 26 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsValidJavaName{		   val id = 27 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsOperator{		 	   val id = 28 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
-
-           							   
-          
+           							   val id = 25 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsValidJavaName{		   val id = 26 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsOperator{		 	   val id = 27 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsCompleteReturnTypeInName{
+          							   val id = 28 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsPartialReturnTypeInName{
+           							   val id = 29 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+      
 
       )
       

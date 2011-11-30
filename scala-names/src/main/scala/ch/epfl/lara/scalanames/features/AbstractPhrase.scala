@@ -11,7 +11,7 @@ trait AbstractPhrase extends ContainsAcronym {
     
   override def appliesTo(methodDef: MethodDef): Boolean = {
 
-    val cp = reconstructAcronym(splitWord(methodDef.name,"",List()),"",List())    
+    val cp = reconstructAcronym(methodDef.name)    
     if(cp.length > 0) validAbstractPhrase(cp) else false
   }
   

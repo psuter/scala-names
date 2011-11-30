@@ -14,7 +14,7 @@ trait NameContains extends ContainsAcronym {
     val UpperCasePattern = (pattern.head.toUpperCase)+pattern.tail
 
     //Reconstruct a camel phrase
-    val cp = reconstructAcronym(splitWord(methodDef.name,"",List()),"",List())
+    val cp = reconstructAcronym(methodDef.name)
     
     //test if it contains the given pattern
     def apply(ws: List[String]):Boolean = ws match {
@@ -24,5 +24,4 @@ trait NameContains extends ContainsAcronym {
     }
     apply(cp)
   }
-
 }

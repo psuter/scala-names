@@ -4,21 +4,27 @@ import java.io.BufferedReader
 import java.io.FileReader
 import scala.collection.mutable.HashMap
 import scala.util.Random
+import java.io.BufferedWriter
+import java.io.FileWriter
 
 object Kmeans {
   
   val libDataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\libOutput.txt"
   val testDataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\testOutput.txt"
    
-  var cluster = 3 							//Number of wanted clusters
+  var cluster = 10 							//Number of wanted clusters
   var dimSize = 0 							//The dimension size of observations 
   var observations : Double = 0 			//Cardinality of the observation set
   val data = new HashMap[String,List[Int]]	//The observation set retrieved from the input file
   
-  val clusteredData = new HashMap[String,Int] //The observation set classified by it's cluster
+  var clusteredData = new HashMap[String,Int] //The observation set classified by it's cluster
   var cs : List[Centroid] = List()			  //The list of all clusters
   
   val newCentroid = new HashMap[Int,List[Double]] //Val used for optimization of update phase
+  
+  val output: String = ".\\KmeanOutput.txt"
+  lazy val out = new BufferedWriter(new FileWriter(output, false))
+
   
   //Initialize the centroids 
   def buildCentroid(nb:Int,size:Int):List[Centroid]= nb match {
@@ -30,19 +36,19 @@ object Kmeans {
     
     val buffer = new BufferedReader(new FileReader(path));
 
-	def apply : Unit = buffer.readLine() match {
+	def read : Unit = buffer.readLine() match {
 	  case null =>
 	  case str => { 
 	    //println(str)
 	    val entry : List[String] = split(str) 
 	    data.put(entry.head,convert(entry.tail)) 
-	    apply
+	    read
 	  } 
 	}
 	def split(str: String): List[String] = str.split("\\s").toList
 	def convert(ls: List[String]): List[Int] = ls.map(_.toInt)
 	
-	apply
+	read
 	
   }
   
@@ -54,7 +60,7 @@ object Kmeans {
     }
   }
   
-  def assignement:Unit = {
+  def assignement():Unit = {
     
     def assignClosestCluster(elem: (String,List[Int])):Unit = {
       var minMean = Double.MaxValue
@@ -67,15 +73,14 @@ object Kmeans {
           minMean = distance
         }
       }
-     // clusteredData.remove(elem._1)
       clusteredData.put(elem._1,clusterNumber)
     }
-    clusteredData.foreach(f => clusteredData.remove(f._1)) //empty the clusteredData
-    data.foreach(assignClosestCluster) //assign data to correct cluster
     
+    clusteredData = new HashMap[String,Int] //empty the clusteredData
+    data.foreach(assignClosestCluster) //assign data to correct cluster   
   }
   
-  def update:Boolean = {
+  def update():Boolean = {
     
     val csCopy : List[Centroid] = cs.map(_.copy) //Copy of the cluster before the update
     //println(csCopy)
@@ -132,7 +137,7 @@ object Kmeans {
 
     //Retrieve data sample from input file or exit
     try{
-      buildData(testDataPath)
+      buildData(libDataPath)
     }catch{
       case e => println("Unable to retrieve data: "+e.toString); System.exit(0)
     }
@@ -151,21 +156,30 @@ object Kmeans {
     	//Run the algorithm
     	//TODO add possibility to exit after X steps
     	var i =0
-    	while(update){
+    	while(update()){
     		println("round :"+i)
-    		if(i>10000){
+    		if(i>500){
     		  println(cs)
     		}
-    		assignement
+    		assignement()
     		i=i+1
     	}
     
     	//print result
     	println("---------RESULTS--------")
-    	for(elem <- clusteredData.elements){
-    		println(elem._2 +"\t"+elem._1)
-    	}
-  }
+    	clusteredData.foreach(elem =>
+    	  {
+    	    val str = elem._2 +"\t"+elem._1+"\n"
+    		try{
+    		  out.write(str)
+    		  print(str)
+    		  
+    		} catch {
+    		  case e => println("error during writing: "+str)
+    		}
+    	  })
+    		
+    }
   }
 }
 
