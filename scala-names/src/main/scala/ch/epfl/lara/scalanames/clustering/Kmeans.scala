@@ -56,7 +56,7 @@ object Kmeans {
   def randomPartition:Unit ={
     val rand = new Random
     for(d <- data.keySet){
-      clusteredData.put(d,rand.nextInt(3)+1)
+      clusteredData.put(d,rand.nextInt(cluster)+1)
     }
   }
   
@@ -83,7 +83,7 @@ object Kmeans {
   def update():Boolean = {
     
     val csCopy : List[Centroid] = cs.map(_.copy) //Copy of the cluster before the update
-    //println(csCopy)
+    var clusterSize: Array[Int] = new Array[Int](cluster)
     
     //Initialize a list of double of size dimSize
     def newD(dimSize:Int):List[Double]= dimSize match {
@@ -110,16 +110,23 @@ object Kmeans {
         val actualClusterVector = centers.apply(x)
         val elementVector = data.apply(elem._1)
         centers.put(x,sum(elementVector,actualClusterVector))
+        clusterSize(x-1) += 1
+        //faire la somme des elements par cluster: tableau[int] of size cs.length
       }
     }   
      def divide(elem: (Int,List[Double])): Unit = {
       def apply(ls: List[Double]): List[Double] = ls match {
         case Nil => List()
-        case x :: xs => x/observations::apply(xs)
+        case x :: xs => if(clusterSize(elem._1-1)==0) x::apply(xs) else x/clusterSize(elem._1-1)::apply(xs)
       }
       centers.put(elem._1,apply(elem._2))
+      
     }
-    
+     var i = 0
+    while(i<10){
+      clusterSize(i) = 0
+      i += 1
+    }
     //For all observation, add their distance to their respective cluster
     clusteredData.foreach(addDistanceVector) 
     //Divide by the cardinality of the number of observation
@@ -132,7 +139,7 @@ object Kmeans {
     csCopy != cs
   }
   
-  //TODO add args for specifying nb cluster, inputfile and nb steps
+  //TODO add args for specifying nb cluster, inputfile and if print or not
   def main(args: Array[String]) = {
 
     //Retrieve data sample from input file or exit
@@ -155,10 +162,11 @@ object Kmeans {
     
     	//Run the algorithm
     	//TODO add possibility to exit after X steps
+    	//If step i = step i+2 then exit
     	var i =0
     	while(update()){
     		println("round :"+i)
-    		if(i>500){
+    		if(i>=0){
     		  println(cs)
     		}
     		assignement()
