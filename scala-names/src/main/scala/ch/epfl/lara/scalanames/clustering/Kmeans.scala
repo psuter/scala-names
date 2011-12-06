@@ -170,7 +170,7 @@ object Kmeans {
     //bs = createBCentroid(cs) 
   }*/
   
-    //TODO add args for inputfile and outputfile
+    //TODO add args outputfile
   def checkArgs(args: Array[String]) = {
     //Print into output file or no | By default; false
     if (args.contains("-p")) printy = true

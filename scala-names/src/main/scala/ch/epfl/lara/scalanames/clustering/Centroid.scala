@@ -1,29 +1,18 @@
 package ch.epfl.lara.scalanames.clustering
 
-class Centroid(val i:Int, size:Int) {
-    private var pos : List[Double] = init(size)
-	override def toString = "cluster "+i+" at position "+pos
+class Centroid(val id:Int, length:Int) /*extends Cluster[Double]*/ {
+    
+    private var pos : List[Double] = List()
+	override def toString = "cluster "+id+" at position "+pos
 	
 	def copy : Centroid = {
-      val cp = new Centroid(i, size)
+      val cp = new Centroid(id, length)
       cp.updatePos(this.pos)
       cp
     }
     
-	private def init(size:Int):List[Double] = size match {
-      case 0 => List()
-      case x => List(0.0):::init(size-1)
-    }
-    
     override def equals(that: Any):Boolean = (that != null) && (that match {
-      case c:Centroid if(c.i == i)=> {
-        var e = true
-        for(ps <- getPos.zip(c.getPos)){
-        	if(ps._1!=ps._2)e = false
-        }
-        //println(this +" ==?== "+c +" is "+e)
-        e
-      }      
+      case c:Centroid if(c.id == id)=> getPos==c.getPos 
       case _ => false
     })
 	  
