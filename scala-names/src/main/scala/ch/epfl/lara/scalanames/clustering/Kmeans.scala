@@ -17,22 +17,35 @@ object Kmeans {
   var cluster = 10 								//Number of wanted clusters
   var endAfterXStep = 100						//Exit the algorithm after X step
   val output: String = ".\\KmeanOutput.txt"		//Where to print the ouput
+  var threshold:Double = 0.225
 
   /** ------------- ALGORITHM GLOBAL VARIABLES ------------ **/
   var dimSize = 0 								//The dimension size of observations 
   var observations : Double = 0 				//Cardinality of the observation set
   val data = new HashMap[String,List[Int]]		//The observation set retrieved from the input file
   var clusteredData = new HashMap[String,Int] 	//The observation set classified by it's cluster
-  var cs : List[Centroid] = List()			  	//The list of all clusters
-  //var bs : List[BinaryCentroid] = List()
+  var cs : List[DoubleCluster] = List()			  	//The list of all clusters
+  var bs : List[OptBoolCluster] = List()
   
   /** ------------ MISC ------------ **/
   lazy val out = new BufferedWriter(new FileWriter(output, false))
 
-  //Initialize the centroids 
-  def buildCentroid(nb:Int,size:Int):List[Centroid]= nb match {
+  //Initialize list of DoubleCluster of size nb
+  def buildClusters(nb:Int):List[DoubleCluster]= nb match {
     case 0 => List()
-    case i => new Centroid(i,size)::buildCentroid(i-1,size)
+    case i => new DoubleCluster(i)::buildClusters(i-1)
+  }
+  //Initialize list of OptBoolCluster of size equals to cs.size = cluster
+  def buildOptionClusters:List[OptBoolCluster] = {  
+    def createOptBoolClusters(centroids: List[DoubleCluster]):List[OptBoolCluster] = centroids match {
+      case Nil => List()
+      case y :: ys => {
+        val b = new OptBoolCluster(y.id,threshold)
+        b.setPosFromDouble(y.getPos)
+        b::createOptBoolClusters(ys)
+      }
+    }   
+    createOptBoolClusters(cs) 
   }
   
   def buildData(path:String):Unit = {
@@ -64,7 +77,7 @@ object Kmeans {
       clusteredData.put(d,rand.nextInt(cluster)+1)
   }}
   
-  def assignement():Unit = {
+  def assignment(cs:List[Cluster[_]]):Unit = {
     
     def assignClosestCluster(elem: (String,List[Int])):Unit = {
       var minMean = Double.MaxValue
@@ -84,31 +97,37 @@ object Kmeans {
     data.foreach(assignClosestCluster) //assign data to correct cluster   
   }
   
-  def update():Boolean = {
+  def update(cs:List[Cluster[_]]):Boolean = {
     
     val csCopy = cs.map(_.copy) //Copy of the cluster before the update
     var centers : HashMap[Int,List[Double]] = new HashMap[Int,List[Double]]
     var clusterSize: Array[Int] = new Array[Int](cluster)
-    var i = 0
-    while(i<cluster){
-      clusterSize(i) = 0
-      i += 1
-    }
     
-    //Initialize a list of double of size dimSize
-    def newD(dimSize:Int):List[Double]= dimSize match {
-      case 0 => List()
-      case i => 0.0::newD(i-1)
-    }
-    //Initialize the newCentroid variable
-    def addEmptyCluser(cluster: Int,doubleList: List[Double]):Unit = cluster match {
-      case 0 =>
-      case i => centers.put(i,doubleList); addEmptyCluser(i-1,doubleList)
-    }    
+    def init():Unit = {
+      //Initialize a list of double of size dimSize
+      def newD(dimSize:Int):List[Double]= dimSize match {
+      	case 0 => List()
+      	case i => 0.0::newD(i-1)
+      }
+      //Put a new empty centroid into centers
+      def addEmptyCluser(cluster: Int,doubleList: List[Double]):Unit = cluster match {
+      	case 0 =>
+      	case i => centers.put(i,doubleList); addEmptyCluser(i-1,doubleList)
+      }     
+      //Initiate all elements of clusterSize to 0
+      var i = 0
+      while(i<cluster){
+    	clusterSize(i) = 0
+    	i += 1
+      }
+      addEmptyCluser(cluster,newD(dimSize))
+    }   
+   
     def sum(ls1:List[Int],ls2:List[Double]): List[Double] = ls1 match {
       case Nil => List()
       case x :: xs => x+ls2.head::sum(xs,ls2.tail)
     }    
+    
     def addDistanceVector(elem: (String,Int)):Unit = elem._2 match {
       case x => {
         val actualClusterVector = centers.apply(x)
@@ -117,7 +136,8 @@ object Kmeans {
         clusterSize(x-1) += 1
         //faire la somme des elements par cluster: tableau[int] of size cs.length
       }
-    }   
+    }  
+    
      def divide(elem: (Int,List[Double])): Unit = {
       def apply(ls: List[Double]): List[Double] = ls match {
         case Nil => List()
@@ -125,14 +145,14 @@ object Kmeans {
       }
       centers.put(elem._1,apply(elem._2))     
     }
-    //Initiate the empty List
-    addEmptyCluser(cluster,newD(dimSize))
+    //Initiate algorithm step
+    init
     //For all observation, add their distance to their respective cluster
     clusteredData.foreach(addDistanceVector) 
     //Divide by the cardinality of the number of observation
     centers.foreach(divide)
     //Update the centroid
-    cs.map(centroid => centroid.updatePos(centers.apply(centroid.id)))
+    cs.map(centroid => centroid.setPosFromDouble(centers.apply(centroid.id)))
     
     //If a centroid was updated, then return true
     //println("co="+csCopy)
@@ -156,19 +176,19 @@ object Kmeans {
     cs.foreach(println)
   }
   
-  /*def buildBinCentroid():Unit = {
-    
-    def createBCentroid(centroids: List[Centroid]):List[BinaryCentroid] = centroids match {
-      case Nil => List()
-      case y :: ys => {
-        val b = new BinaryCentroid(y.id,dimSize)
-        b.setValues(y.getPos)
-        b::createBCentroid(ys)
-      }
+  def optionStep:Unit = {
+    bs = buildOptionClusters
+    val formerBs = bs.map(_.copy)
+    assignment(bs)
+    val mod : Boolean = update(bs)
+    println("---Clusters are"+(if(!mod)" not" else "")+" modified---")
+    def prettyOutput(cs:List[DoubleCluster],fbs:List[OptBoolCluster],bs:List[OptBoolCluster]): Unit = (cs,fbs,bs) match {
+      case (Nil,Nil,Nil) =>
+      case (x::xs,y::ys,z::zs) => println(x+"\n"+y+"\n"+z); prettyOutput(xs,ys,zs)
+      case _ =>
     }
-    
-    //bs = createBCentroid(cs) 
-  }*/
+    prettyOutput(cs,formerBs,bs)
+  }
   
     //TODO add args outputfile
   def checkArgs(args: Array[String]) = {
@@ -197,6 +217,17 @@ object Kmeans {
         } catch {
           case e => println("Correct number of steps expected after -exit: "+e); System.exit(0)
     }}}
+    //Choose the threshold use for OptionCluster | By default 0.1
+    if(args.contains("-th")){
+      val index = args.indexOf("-th")
+        if(args.length > index+1){
+          try{
+            val th = args.apply(index+1).toInt
+            if(th < 0 || th > 0.5) throw new Exception("Threshold should be between 0 and 0.5: "+th)
+            threshold = th
+          } catch {
+            case e => println("Correct threshold double number expected after -th: "+e); System.exit(0)
+    }}}
     //Choose to run with the Library of the test file | By default; test
     if(args.contains("-t")) dataPathToUse = testDataPath
     else if(args.contains("-lib")) dataPathToUse = libDataPath   
@@ -212,28 +243,24 @@ object Kmeans {
     //Build the centroids
     dimSize = data.first._2.length
     observations = data.elements.length
-    cs = buildCentroid(cluster,dimSize)
+    cs = buildClusters(cluster)
 
     //Assign to every elements a cluster at random
     randomPartition
     
     //Run the algorithm
+    //TODO add safty exit if cs = previous(previous(cs))
     var i =0
-    while(if(i<endAfterXStep) update else false){
-        assignement
+    while(if(i<endAfterXStep) update(cs) else false){
+        assignment(cs)
     	println("round :"+i+"\t"+cs)
     	i=i+1
     }
     
-    printMyStuff
-    println("-----REASSIGNED CLUSTERS-----")
-    //TODO Option[Boolean] true / false / ? 
+    //printMyStuff
     //TODO matrice indicices
+    optionStep
     
-    //buildBinCentroid
-    	
-    	
-    		
   }
 }
 
