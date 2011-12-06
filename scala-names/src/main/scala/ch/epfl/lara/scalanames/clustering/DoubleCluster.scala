@@ -15,6 +15,8 @@ class DoubleCluster(val id:Int) extends Cluster[Double] {
 
   def distanceFrom(ls: List[Int]): Double = distance(ls.map(_.toDouble))
   
+  def distanceFrom2(ls: List[Double]): Double = distance(ls)
+  
   def distance(ls: List[Double]): Double = {
      def inner(zhis: List[Double],that: List[Double]): Double = (zhis,that) match {
       case (Nil,Nil)=> 0
@@ -22,6 +24,8 @@ class DoubleCluster(val id:Int) extends Cluster[Double] {
     }   
     inner(getPos(),ls)
   }
+  
+  def distFromIndex(index:Int,x:Double):Double = if(pos.isEmpty) 0 else (x-pos.apply(index)).abs
 
   def getPos(): List[Double] = { pos }
 

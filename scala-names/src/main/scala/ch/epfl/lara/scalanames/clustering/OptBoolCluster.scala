@@ -40,12 +40,19 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
       case _ => false
   })
 
-  def distanceFrom(ls: List[Int]): Double = {
-	  distance(ls.map(x=>x match {case 0=>Some(false);case 1=>Some(true); case _ => None}))
+  def distanceFrom(ls: List[Int]): Double = distanceFrom2(ls.map(_.toDouble))
+  
+  def distanceFrom2(ls: List[Double]): Double = {    
+    def dist(zhis: List[Option[Boolean]],ls: List[Double]): Double = (zhis,ls) match {
+      case (Nil,Nil) => 0
+      case (Some(true)::xs,y::ys)=> 1-y+dist(xs,ys)
+      case (Some(false)::xs,y::ys) => y+dist(xs,ys)
+      case (None::xs,y::ys) => dist(xs,ys)
+    }
+    dist(getPos,ls)
   }
   
-  def distance(ls: List[Option[Boolean]]): Double = { 
-    
+  def distance(ls: List[Option[Boolean]]): Double = {   
     def dist(zhis:List[Option[Boolean]],that:List[Option[Boolean]]): Double = (zhis,that) match {
       case (Nil,Nil) => 0
       case (Some(true)::xs,Some(true)::ys) => dist(xs,ys)
@@ -57,9 +64,15 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
     }
     dist(getPos,ls)
   }
+  
+  def distFromIndex(index:Int,x:Double):Double = if(pos.isEmpty) 0 else pos.apply(index) match {
+    case Some(true) => 1-x
+    case Some(false) => x
+    case None => 0
+  }
 
   def getPos: List[Option[Boolean]] = { pos }
-
+  
   def updatePos(ps: List[Option[Boolean]]): Unit = { pos = ps }
 
 }

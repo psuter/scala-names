@@ -10,6 +10,9 @@ abstract class Cluster[T] {
   /**calculate the distance from this cluster to an observation**/
   def distanceFrom(ls:List[Int]):Double
   
+  /**calculate the distance from this cluster to a list of double **/
+  def distanceFrom2(ls:List[Double]):Double
+  
   /**calculate the distance from this cluster to the list (representing another cluster) provided**/ 
   def distance(ls:List[T]):Double
   
@@ -17,6 +20,8 @@ abstract class Cluster[T] {
   def getPos : List[T]
   
   def equals(that:Any):Boolean
+  
+  def distFromIndex(index: Int, x : Double): Double
   
   /**Update variable pos **/
   def updatePos(ps:List[T]):Unit

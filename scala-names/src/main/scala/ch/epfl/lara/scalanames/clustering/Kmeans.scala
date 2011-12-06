@@ -17,7 +17,8 @@ object Kmeans {
   var cluster = 10 								//Number of wanted clusters
   var endAfterXStep = 100						//Exit the algorithm after X step
   val output: String = ".\\KmeanOutput.txt"		//Where to print the ouput
-  var threshold:Double = 0.225
+  var threshold:Double = 0.225					//Threshold of OptBoolCluster
+  var emptyCluster : Boolean = false			//Use of the modified K-means for avoiding empty cluster
 
   /** ------------- ALGORITHM GLOBAL VARIABLES ------------ **/
   var dimSize = 0 								//The dimension size of observations 
@@ -139,11 +140,17 @@ object Kmeans {
     }  
     
      def divide(elem: (Int,List[Double])): Unit = {
-      def apply(ls: List[Double]): List[Double] = ls match {
+      def kMeans(ls: List[Double]): List[Double] = ls match { // K-means
         case Nil => List()
-        case x :: xs => if(clusterSize(elem._1-1)==0) x::apply(xs) else x/clusterSize(elem._1-1)::apply(xs)
+        case x :: xs => if(clusterSize(elem._1-1)==0) x::kMeans(xs) else x/clusterSize(elem._1-1)::kMeans(xs)
       }
-      centers.put(elem._1,apply(elem._2))     
+      def m_kMeans(ls: List[Double],cl: Cluster[_],i:Int): List[Double] = ls match { // m_K-means
+        case Nil => List()
+        case x::xs => (x+cl.distFromIndex(i,x))/(clusterSize(elem._1-1)+1)::m_kMeans(xs,cl,i+1)  
+      }
+      val rev = cs.reverse
+      if(emptyCluster) centers.put(elem._1,m_kMeans(elem._2,rev.apply(elem._1-1),0)) //FIXME does not work !!!
+      else centers.put(elem._1,kMeans(elem._2))     
     }
     //Initiate algorithm step
     init
@@ -231,6 +238,8 @@ object Kmeans {
     //Choose to run with the Library of the test file | By default; test
     if(args.contains("-t")) dataPathToUse = testDataPath
     else if(args.contains("-lib")) dataPathToUse = libDataPath   
+    //Choose k-mean or it's modified version | By default; false
+    if(args.contains("-noEmpty")) emptyCluster = true
   }
   
   def main(args: Array[String]) = {
@@ -243,13 +252,13 @@ object Kmeans {
     //Build the centroids
     dimSize = data.first._2.length
     observations = data.elements.length
-    cs = buildClusters(cluster)
+    cs = buildClusters(cluster).reverse
 
     //Assign to every elements a cluster at random
     randomPartition
     
     //Run the algorithm
-    //TODO add safty exit if cs = previous(previous(cs))
+    //TODO add safty m_k-means
     var i =0
     while(if(i<endAfterXStep) update(cs) else false){
         assignment(cs)
