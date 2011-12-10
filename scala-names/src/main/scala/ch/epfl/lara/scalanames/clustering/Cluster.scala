@@ -21,7 +21,7 @@ abstract class Cluster[T] {
   
   def equals(that:Any):Boolean
   
-  def distFromIndex(index: Int, x : Double): Double
+  def distWithList: List[Double]
   
   /**Update variable pos **/
   def updatePos(ps:List[T]):Unit

@@ -6,6 +6,7 @@ import scala.collection.mutable.HashMap
 import scala.util.Random
 import java.io.BufferedWriter
 import java.io.FileWriter
+import ch.epfl.lara.scalanames.features.ReturnSubtypeOf
 
 object Kmeans {
   
@@ -19,6 +20,7 @@ object Kmeans {
   val output: String = ".\\KmeanOutput.txt"		//Where to print the ouput
   var threshold:Double = 0.225					//Threshold of OptBoolCluster
   var emptyCluster : Boolean = false			//Use of the modified K-means for avoiding empty cluster
+  var loop : Boolean = false					//Empty cluster do not make algorithm looping
 
   /** ------------- ALGORITHM GLOBAL VARIABLES ------------ **/
   var dimSize = 0 								//The dimension size of observations 
@@ -128,7 +130,7 @@ object Kmeans {
       case Nil => List()
       case x :: xs => x+ls2.head::sum(xs,ls2.tail)
     }    
-    
+        
     def addDistanceVector(elem: (String,Int)):Unit = elem._2 match {
       case x => {
         val actualClusterVector = centers.apply(x)
@@ -140,24 +142,40 @@ object Kmeans {
     }  
     
      def divide(elem: (Int,List[Double])): Unit = {
-      def kMeans(ls: List[Double]): List[Double] = ls match { // K-means
-        case Nil => List()
-        case x :: xs => if(clusterSize(elem._1-1)==0) x::kMeans(xs) else x/clusterSize(elem._1-1)::kMeans(xs)
-      }
-      def m_kMeans(ls: List[Double],cl: Cluster[_],i:Int): List[Double] = ls match { // m_K-means
-        case Nil => List()
-        case x::xs => (x+cl.distFromIndex(i,x))/(clusterSize(elem._1-1)+1)::m_kMeans(xs,cl,i+1)  
-      }
-      val rev = cs.reverse
-      if(emptyCluster) centers.put(elem._1,m_kMeans(elem._2,rev.apply(elem._1-1),0)) //FIXME does not work !!!
-      else centers.put(elem._1,kMeans(elem._2))     
+       def kMeans(ls: List[Double]): List[Double] = ls match { // K-means
+         case Nil => List()
+         case x :: xs => if(clusterSize(elem._1-1)==0) x::kMeans(xs) else x/clusterSize(elem._1-1)::kMeans(xs)
+       }
+       centers.put(elem._1,kMeans(elem._2))     
     }
+     
+    def m_kMeans():Unit = {
+      
+      def ++(ls1:List[Double],ls2:List[Double]):List[Double] = (ls1,ls2) match {
+        case (Nil,Nil)=>Nil
+        case (x::xs,Nil)=>x::xs
+        case (x::xs,y::ys)=>(x+y):: ++(xs,ys)
+      }
+      for(i <- 1 to cluster) {
+        clusterSize(i-1) +=1
+        val exCenter = csCopy.apply(i-1).distWithList
+        val temp = centers.apply(i)
+        centers = centers-i
+        centers.put(i,++(temp,exCenter))
+      }     
+    }
+    
     //Initiate algorithm step
     init
     //For all observation, add their distance to their respective cluster
     clusteredData.foreach(addDistanceVector) 
+    //If we run the modified kMean
+    if(emptyCluster) m_kMeans()
     //Divide by the cardinality of the number of observation
     centers.foreach(divide)
+    //centers.foreach(m_kMeans)
+    
+    
     //Update the centroid
     cs.map(centroid => centroid.setPosFromDouble(centers.apply(centroid.id)))
     
@@ -179,8 +197,38 @@ object Kmeans {
    	  }}
    	  print(str)
     })
-    println("------CLUSTERS-------")
-    cs.foreach(println)
+  }
+  
+  def features(id : Int):String = id match {
+    case  1 => "Method returns a subtype of Traversable"
+    case  2 => "Method returns a subtype of AnyRef"
+    case  3 => "Method return is of type Unit"
+    case  4 => "Method return is of type Boolean"
+    case  5 => "Method return is of type Int"
+    case  6 => "Method return is of type String"
+    case  7 => "Method have no parameter"
+    case  8 => "Method has no parentesis"
+    case  9 => "Method contains IF statement"
+    case 10 => "Method contains WHILE statement"
+    case 11 => "Method contains TRY/CATCH statement"
+    case 12 => "Method contains Pattern matching"
+    case 13 => "Method may explicitly throw an exception"
+    case 14 => "Method is currified"
+    case 15 => "Method contains a self-recursion"
+    case 16 => "Method name is a verb"
+    case 17 => "Method name is a noun"
+    case 18 => "Method name is a camel phrase"
+    case 19 => "Method name contains an acronym"
+    case 20 => "Method name match abstract phrase construction"
+    case 21 => "MethodName contains \"IS\" pattern"   
+    case 22 => "MethodName contains \"GET\" pattern"  
+    case 23 => "MethodName contains \"SET\" pattern"  
+    case 24 => "MethodName contains \"CONTAINS\" pattern"
+    case 25 => "MethodName is a valid Java name"
+    case 26 => "MethodName is an operator"
+    case 27 => "Method return type is completly contained into methodName"
+    case 28 => "Method return type is partially into the method name"
+    case  _ => "PWET PWET ERROR HAPPEN !"
   }
   
   def optionStep:Unit = {
@@ -189,9 +237,18 @@ object Kmeans {
     assignment(bs)
     val mod : Boolean = update(bs)
     println("---Clusters are"+(if(!mod)" not" else "")+" modified---")
+    def haz(optBoolC: OptBoolCluster): Unit = {
+      def inner(os:List[Option[Boolean]],id:Int):Unit = os match {
+      	case Nil => 
+      	case Some(true)::xs => println("Haz     "+features(id)); inner(xs,id+1)//Haz
+      	case Some(false)::xs => println("Haz NOT "+features(id)); inner(xs,id+1) //Haz not
+      	case None::xs => inner(xs,id+1)
+      }
+      inner(optBoolC.getPos,1)
+    }
     def prettyOutput(cs:List[DoubleCluster],fbs:List[OptBoolCluster],bs:List[OptBoolCluster]): Unit = (cs,fbs,bs) match {
       case (Nil,Nil,Nil) =>
-      case (x::xs,y::ys,z::zs) => println(x+"\n"+y+"\n"+z); prettyOutput(xs,ys,zs)
+      case (x::xs,y::ys,z::zs) => println(x+"\n"+y+"\n"+z);haz(z); prettyOutput(xs,ys,zs)
       case _ =>
     }
     prettyOutput(cs,formerBs,bs)
@@ -240,12 +297,13 @@ object Kmeans {
     else if(args.contains("-lib")) dataPathToUse = libDataPath   
     //Choose k-mean or it's modified version | By default; false
     if(args.contains("-noEmpty")) emptyCluster = true
+    //Choose if an empty cluster make loop the algorithm | by default; false
+    if(args.contains("-noLoop")) loop = true
   }
   
   def main(args: Array[String]) = {
 
     checkArgs(args)
-    
     //Retrieve data sample from input file or exit
     buildData(dataPathToUse)
 
@@ -258,16 +316,23 @@ object Kmeans {
     randomPartition
     
     //Run the algorithm
-    //TODO add safty m_k-means
+    var cs2stepAgo : List[DoubleCluster] = Nil
+    var cs1stepAgo : List[DoubleCluster] = Nil
     var i =0
     while(if(i<endAfterXStep) update(cs) else false){
+       if(cs==cs2stepAgo){ //reach stable point
+         println("fixed point reached at round "+i)
+         i=endAfterXStep 
+       } else {
+    	cs2stepAgo = cs1stepAgo.map(_.copy)
+    	cs1stepAgo = cs.map(_.copy)
         assignment(cs)
     	println("round :"+i+"\t"+cs)
     	i=i+1
+       }
     }
-    
-    //printMyStuff
-    //TODO matrice indicices
+    printMyStuff
+    //Transform DoubleCluster to OptBoolCluster and perform one step
     optionStep
     
   }

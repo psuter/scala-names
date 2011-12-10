@@ -65,11 +65,7 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
     dist(getPos,ls)
   }
   
-  def distFromIndex(index:Int,x:Double):Double = if(pos.isEmpty) 0 else pos.apply(index) match {
-    case Some(true) => 1-x
-    case Some(false) => x
-    case None => 0
-  }
+  def distWithList = getPos.map(_ match{case Some(true)=>1.0;case _ =>0.0})
 
   def getPos: List[Option[Boolean]] = { pos }
   

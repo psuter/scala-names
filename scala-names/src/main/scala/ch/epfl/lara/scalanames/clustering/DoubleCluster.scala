@@ -25,7 +25,7 @@ class DoubleCluster(val id:Int) extends Cluster[Double] {
     inner(getPos(),ls)
   }
   
-  def distFromIndex(index:Int,x:Double):Double = if(pos.isEmpty) 0 else (x-pos.apply(index)).abs
+  def distWithList = getPos
 
   def getPos(): List[Double] = { pos }
 

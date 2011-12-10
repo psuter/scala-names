@@ -4,7 +4,7 @@ trait NoParam extends MethodFeature {
   import component._
   import component.global._
   
-  val name = "Method have not parameter."
+  val name = "Method have no parameter."
 
   def appliesTo(methodDef: MethodDef): Boolean = methodDef.d.vparamss.size match {
       case 0 => true
