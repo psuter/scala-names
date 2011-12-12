@@ -4,7 +4,7 @@ trait ContainsPartialReturnTypeInName extends ContainsAcronym {
   import component._
   import component.global._
   
-  override val name = "Method return type is partially into the method name"
+  override lazy val name = "Method return type is partially into the method name"
     
   override def appliesTo(methodDef: MethodDef): Boolean = { 
     
@@ -38,7 +38,7 @@ trait ContainsPartialReturnTypeInName extends ContainsAcronym {
  }
   
   //Often used abreviation
-  def ==>(word:String):String = word match {
+  def ==> (word:String):String = word match {
     case "Str" | "str" => "String"
 	case "Bool"| "bool"=> "Boolean"
 	case "Int" | "int" => "Integer"
@@ -50,13 +50,15 @@ trait ContainsPartialReturnTypeInName extends ContainsAcronym {
 	//Unfold currified return type
 	def unfoldMethodType(tt: Type):Type = tt match {
       case MethodType(ls,rt) => unfoldMethodType(rt)
+      //case PolyType(tps,rt) => unfoldMethodType(rt)
+      //case AnnotatedType(as,t2,s) => unfoldMethodType(t2)
+      //case TypeRef(t,s,args) => unfoldMethodType(t)
 	  case x => x
     }
     //remove java package dot	
 	def removePackage(tn: String): String = {
 	  if(tn.contains(".")) tn.split("\\u002E").last else tn
     }
-  
     removePackage(((unfoldMethodType(t)).typeConstructor).toString)
   }
 }

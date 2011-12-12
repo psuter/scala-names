@@ -27,8 +27,9 @@ object Kmeans {
   var observations : Double = 0 				//Cardinality of the observation set
   val data = new HashMap[String,List[Int]]		//The observation set retrieved from the input file
   var clusteredData = new HashMap[String,Int] 	//The observation set classified by it's cluster
-  var cs : List[DoubleCluster] = List()			  	//The list of all clusters
-  var bs : List[OptBoolCluster] = List()
+  var cs : List[DoubleCluster] = List()			//The list of all clusters
+  var bs : List[OptBoolCluster] = List()		//The list of clusters used for final step
+  var features = new HashMap[Int,String]		//List of feature for usefull output
   
   /** ------------ MISC ------------ **/
   lazy val out = new BufferedWriter(new FileWriter(output, false))
@@ -54,15 +55,24 @@ object Kmeans {
   def buildData(path:String):Unit = {
        
     val buffer = new BufferedReader(new FileReader(path));
+    var featureDef = false
     
 	def read() : Unit = buffer.readLine() match { //Read a line
 	  case null =>
+	  case "{" => featureDef = true; read
+	  case "}" => featureDef = false; read
+	  case str if(featureDef)=> {
+	    val f = str.split("\\u003B") //;
+	    if(f.length==2){
+	      features.put(f.head.toInt,f.tail.head)	      
+	    } else throw new Exception("feature definition is not right: "+str)
+	    read
+	  }
 	  case str => { 
-	    val entry : List[String] = split(str)      
-	    data.put(entry.head,convert(entry.tail))  //Store it into a database
+	    val entry : List[String] = str.split("\\s").toList //Split it on blank characters      
+	    data.put(entry.last,convert(entry.-(entry.last)))  //Store it into a database
 	    read
 	}}
-	def split(str: String): List[String] = str.split("\\s").toList //Split it on blank characters
 	def convert(ls: List[String]): List[Int] = ls.map(_.toInt)
 	
 	try{
@@ -172,10 +182,7 @@ object Kmeans {
     //If we run the modified kMean
     if(emptyCluster) m_kMeans()
     //Divide by the cardinality of the number of observation
-    centers.foreach(divide)
-    //centers.foreach(m_kMeans)
-    
-    
+    centers.foreach(divide)       
     //Update the centroid
     cs.map(centroid => centroid.setPosFromDouble(centers.apply(centroid.id)))
     
@@ -199,37 +206,10 @@ object Kmeans {
     })
   }
   
-  def features(id : Int):String = id match {
-    case  1 => "Method returns a subtype of Traversable"
-    case  2 => "Method returns a subtype of AnyRef"
-    case  3 => "Method return is of type Unit"
-    case  4 => "Method return is of type Boolean"
-    case  5 => "Method return is of type Int"
-    case  6 => "Method return is of type String"
-    case  7 => "Method have no parameter"
-    case  8 => "Method has no parentesis"
-    case  9 => "Method contains IF statement"
-    case 10 => "Method contains WHILE statement"
-    case 11 => "Method contains TRY/CATCH statement"
-    case 12 => "Method contains Pattern matching"
-    case 13 => "Method may explicitly throw an exception"
-    case 14 => "Method is currified"
-    case 15 => "Method contains a self-recursion"
-    case 16 => "Method name is a verb"
-    case 17 => "Method name is a noun"
-    case 18 => "Method name is a camel phrase"
-    case 19 => "Method name contains an acronym"
-    case 20 => "Method name match abstract phrase construction"
-    case 21 => "MethodName contains \"IS\" pattern"   
-    case 22 => "MethodName contains \"GET\" pattern"  
-    case 23 => "MethodName contains \"SET\" pattern"  
-    case 24 => "MethodName contains \"CONTAINS\" pattern"
-    case 25 => "MethodName is a valid Java name"
-    case 26 => "MethodName is an operator"
-    case 27 => "Method return type is completly contained into methodName"
-    case 28 => "Method return type is partially into the method name"
-    case  _ => "PWET PWET ERROR HAPPEN !"
-  }
+  //TODO cluster size
+  //TODO cb de method change de cluster
+  //TODO run complete Kmean after
+  //TODO unit test
   
   def optionStep:Unit = {
     bs = buildOptionClusters
@@ -259,8 +239,8 @@ object Kmeans {
     //Print into output file or no | By default; false
     if (args.contains("-p")) printy = true
     //Choose number of clusters    | By default; 10
-    if (args.contains("-c")){
-      val index = args.indexOf("-c")
+    if (args.contains("-cl")){
+      val index = args.indexOf("-cl")
       if(args.length > index+1){
         try{
           val c = args.apply(index+1).toInt
@@ -268,7 +248,7 @@ object Kmeans {
           else if (c > 100) throw new Exception("Cluser number should be smaller than 101: "+c)
           else cluster = c
         } catch {
-          case e => println("Correct number of clusters expected after -c: "+e); System.exit(0)
+          case e => println("Correct number of clusters expected after -cl: "+e); System.exit(0)
     }}}
     //Exit algorithm after number of step | By default; 100
     if(args.contains("-exit")){
@@ -281,7 +261,7 @@ object Kmeans {
         } catch {
           case e => println("Correct number of steps expected after -exit: "+e); System.exit(0)
     }}}
-    //Choose the threshold use for OptionCluster | By default 0.1
+    //Choose the threshold use for OptionCluster | By default 0.225
     if(args.contains("-th")){
       val index = args.indexOf("-th")
         if(args.length > index+1){

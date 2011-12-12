@@ -6,7 +6,7 @@ trait NameContains extends ContainsAcronym {
   
   val pattern : String
 
-  override val name = "MethodName contains \""+pattern+"\" pattern."    
+  override lazy val name = "MethodName contains \""+pattern+"\" pattern."    
     
  override def appliesTo(methodDef: MethodDef): Boolean = {
     

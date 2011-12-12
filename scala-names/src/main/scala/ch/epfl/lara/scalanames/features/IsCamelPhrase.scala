@@ -5,7 +5,7 @@ trait IsCamelPhrase extends MethodFeature {
   import component._
   import component.global._
   
-  val name = "Method name is a camel phrase."
+  lazy val name = "Method name is a camel phrase."
 
   def appliesTo(methodDef: MethodDef): Boolean = {
     val ws = splitWord(methodDef.name)

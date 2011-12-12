@@ -4,7 +4,7 @@ trait ContainsAcronym extends IsCamelPhrase {
   import component._
   import component.global._
   
-  override val name = "Method name contains an acronym"
+  override lazy val name = "Method name contains an acronym"
     
   /**
    * Acronym are defined as a list of capital letter or digit 

@@ -5,7 +5,7 @@ trait AbstractPhrase extends ContainsAcronym {
   import component._
   import component.global._
   
-  override val name = "Method name match abstract phrase construction."
+  override lazy val name = "Method name match abstract phrase construction."
     
   val database : WordNetDatabase
     

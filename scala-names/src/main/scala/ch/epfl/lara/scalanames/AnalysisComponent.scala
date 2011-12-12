@@ -22,7 +22,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
     
     val testOutput = ".\\testOutput.txt"
     val libOutput = ".\\libOutput.txt"
-    lazy val out = new BufferedWriter(new FileWriter(testOutput, true))
+    lazy val out = new BufferedWriter(new FileWriter(libOutput, true))
 
     val wordNetPath : String = "C:\\Program Files\\WordNet\\2.1\\dict" 
     System.setProperty("wordnet.database.dir", wordNetPath)
@@ -61,52 +61,62 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           							   val id = 16 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new IsNoun{ val database = db ;
           							   val id = 17 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsCamelPhrase{ 		   val id = 19 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsAcronym{		   val id = 20 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsCamelPhrase{ 		   val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsAcronym{		   val id = 19 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new AbstractPhrase{ val database = db ;
-          							   val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          							   val id = 20 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameContains{ val pattern = "is" ;
-           							   val id = 22 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+           							   val id = 21 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameContains{ val pattern = "get" ;
-           							   val id = 23 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+           							   val id = 22 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameContains{ val pattern = "set" ;
-           							   val id = 24 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+           							   val id = 23 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameContains{ val pattern = "contains" ;
-           							   val id = 25 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsValidJavaName{		   val id = 26 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsOperator{		 	   val id = 27 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+           							   val id = 24 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsValidJavaName{		   val id = 25 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsOperator{		 	   val id = 26 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ContainsCompleteReturnTypeInName{
-          							   val id = 28 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          							   val id = 27 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ContainsPartialReturnTypeInName{
-           							   val id = 29 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+           							   val id = 28 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+
       
 
       )
       
-      // check all instenciated features for all MethodDef found
-      println
+      var printy = false     
+    /*  if(printy){
+          out.write("{\n")
+    	  for(f <- featureList){
+    		  try{
+    			out.write(f.id+";"+f.name+"\n")
+    		  } catch {
+    		  	case e => println("I/O error ")
+    	  }}
+          out.write("}\n")
+          out.flush
+      }*/
       
+      // check all instenciated features for all MethodDef found     
       for(defn <- nc.collectedDefinitions) {
         defn match {
           case md : MethodDef => {
             if(!md.synthetic) {
-              val str = md.UniqueName + " " + featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" ") + "\n"
-
-              try{
-                //Print into file
-                //out.write(str)
-                //out.flush                
-                print(str)
-              } catch {
-              	case e => print("I/O error "+e.toString()+" during: "+str)
-              }
-            }
-          }
+              val str =featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" ") + " " + md.UniqueName + "\n" 
+              //Print into file
+              if(printy){
+                try{
+                  out.write(str)
+                  out.flush 
+                } catch {
+              	  case e => print("I/O error "+e.toString()+" during: "+str); printy=false
+              }}              
+              print(str)          
+          }}
           case _ =>
-        }
-        
-      }
+      }}
+      
     }
 
   }

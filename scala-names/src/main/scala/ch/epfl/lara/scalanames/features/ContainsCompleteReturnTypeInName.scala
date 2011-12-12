@@ -4,7 +4,7 @@ trait ContainsCompleteReturnTypeInName extends ContainsPartialReturnTypeInName {
   import component._
   import component.global._
   
-  override val name = "Method return type is completly contained into methodName."
+  override lazy val name = "Method return type is completly contained into methodName."
     
       
   override def appliesTo(methodDef: MethodDef): Boolean = {
@@ -14,10 +14,10 @@ trait ContainsCompleteReturnTypeInName extends ContainsPartialReturnTypeInName {
 	if(cp.length>0){
 	  val upperCp = firstLetterToUpperCase(cp)
 	  val splitTypeName = reconstructAcronym(resultType(methodDef.rettype))
-	
+	  
 	  splitTypeName.length match {
 	    case 0 => false
-	    case _ => containsReturnTypeInName(cp,splitTypeName)
+	    case _ => containsReturnTypeInName(upperCp,splitTypeName)
 	  }
 	
 	} else false	
