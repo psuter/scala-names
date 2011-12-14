@@ -19,14 +19,19 @@ abstract class Cluster[T] {
   /**return the pos variable**/
   def getPos : List[T]
   
+  /**return the cardinality of the cluster**/
+  def getSize : Int
+  
   def equals(that:Any):Boolean
   
   def distWithList: List[Double]
   
-  /**Update variable pos **/
-  def updatePos(ps:List[T]):Unit
+  /**Update variable pos and the size of the cluster**/
+  def updatePos(ps:List[T],size:Int):Unit
   
-  /**Update variable pos from a list of double**/
-  def setPosFromDouble(ps: List[Double]):Unit
+  /**Update variable pos from a list of double and the size**/
+  def setPosFromDouble(ps: List[Double],size:Int):Unit
+  
+  def isEmpty:Boolean
   
 }

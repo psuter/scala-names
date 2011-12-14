@@ -45,7 +45,7 @@ object Kmeans {
       case Nil => List()
       case y :: ys => {
         val b = new OptBoolCluster(y.id,threshold)
-        b.setPosFromDouble(y.getPos)
+        b.setPosFromDouble(y.getPos,y.getSize)
         b::createOptBoolClusters(ys)
       }
     }   
@@ -184,7 +184,7 @@ object Kmeans {
     //Divide by the cardinality of the number of observation
     centers.foreach(divide)       
     //Update the centroid
-    cs.map(centroid => centroid.setPosFromDouble(centers.apply(centroid.id)))
+    cs.map(centroid => centroid.setPosFromDouble(centers.apply(centroid.id),clusterSize(centroid.id-1)))
     
     //If a centroid was updated, then return true
     //println("co="+csCopy)
@@ -228,7 +228,7 @@ object Kmeans {
     }
     def prettyOutput(cs:List[DoubleCluster],fbs:List[OptBoolCluster],bs:List[OptBoolCluster]): Unit = (cs,fbs,bs) match {
       case (Nil,Nil,Nil) =>
-      case (x::xs,y::ys,z::zs) => println(x+"\n"+y+"\n"+z);haz(z); prettyOutput(xs,ys,zs)
+      case (x::xs,y::ys,z::zs) => println(x+"\n"+y+"\n"+z);if(!z.isEmpty)haz(z); prettyOutput(xs,ys,zs)
       case _ =>
     }
     prettyOutput(cs,formerBs,bs)

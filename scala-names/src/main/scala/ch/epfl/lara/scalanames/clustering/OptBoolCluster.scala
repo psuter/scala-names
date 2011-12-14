@@ -5,18 +5,23 @@ import scala.collection.immutable.List
 class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolean]] {
   
   private var pos : List[Option[Boolean]] = List()
+  private var size : Int = 0
 
-  override def toString = "Option[Boolean] cluster "+id+" at pos ["+
-		   pos.map(x => x match{ case Some(true)=>1;case Some(false)=>0;case None=>"?"}).mkString(",")+"]"
+  override def toString = "Option[Boolean] cluster "+id+ 
+    					  (if(isEmpty) " is empty"
+	  					  else " contains "+size+" element(s) and is at pos ["+
+	  					  	   pos.map(x => x match{ case Some(true)=>1;case Some(false)=>0;case None=>"?"}).mkString(",")+"]")
    
 
   def copy(): OptBoolCluster = { 
      val cp = new OptBoolCluster(id, treshold)
-     cp.updatePos(this.pos)
+     cp.updatePos(this.pos,size)
      cp
   }
   
-  def setPosFromDouble(ls:List[Double]): Unit = {
+  def isEmpty = size==0
+  
+  def setPosFromDouble(ls:List[Double],size:Int): Unit = {
     
     def inner(ls:List[Double]): List[Option[Boolean]] = ls match {
       case Nil => List()
@@ -24,7 +29,7 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
       case x::xs if(x>1-treshold)=> Some(true)::inner(xs)
       case x::xs => None::inner(xs)
     }
-    updatePos(inner(ls))
+    updatePos(inner(ls),size)
   }
    
   override def equals(that: Any):Boolean = (that != null) && (that match {
@@ -67,8 +72,10 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
   
   def distWithList = getPos.map(_ match{case Some(true)=>1.0;case _ =>0.0})
 
-  def getPos: List[Option[Boolean]] = { pos }
+  def getPos = pos 
   
-  def updatePos(ps: List[Option[Boolean]]): Unit = { pos = ps }
+  def getSize = size
+  
+  def updatePos(ps: List[Option[Boolean]], size:Int): Unit = { pos = ps; this.size = size }
 
 }
