@@ -85,7 +85,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
 
       )
       
-      var printy = false     
+      var printy = true    
     /*  if(printy){
           out.write("{\n")
     	  for(f <- featureList){
@@ -157,8 +157,10 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
             mods.isCaseAccessor ||
             mods.isSuperAccessor ||           
             d.name.toString().equals("<init>") ||
-            d.name.debugString().equals("$init$")
+            d.name.debugString().equals("$init$")||
+            d.name.toString == "readResolve" //this is not synthetical, but it's not a method definition, so don't care
           )
+          
           Some(MethodDef(name.debugString(),d,isSynth,d.pos))
         }
         case d @ ModuleDef(mods, _, _) => {
