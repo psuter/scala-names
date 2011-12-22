@@ -50,9 +50,7 @@ trait ContainsPartialReturnTypeInName extends ContainsAcronym {
 	//Unfold currified return type
 	def unfoldMethodType(tt: Type):Type = tt match {
       case MethodType(ls,rt) => unfoldMethodType(rt)
-      //case PolyType(tps,rt) => unfoldMethodType(rt)
-      //case AnnotatedType(as,t2,s) => unfoldMethodType(t2)
-      //case TypeRef(t,s,args) => unfoldMethodType(t)
+      case NullaryMethodType(rt) => unfoldMethodType(rt)
 	  case x => x
     }
     //remove java package dot	
