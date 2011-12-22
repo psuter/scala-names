@@ -2,11 +2,11 @@ package ch.epfl.lara.scalanames.clustering
 
 import java.io.BufferedReader
 import java.io.FileReader
-import scala.collection.mutable.HashMap
-import scala.util.Random
 import java.io.BufferedWriter
 import java.io.FileWriter
-import ch.epfl.lara.scalanames.features.ReturnSubtypeOf
+import scala.collection.mutable.HashMap
+import scala.util.Random
+
 
 object Kmeans {
   
@@ -19,7 +19,7 @@ object Kmeans {
   var endAfterXStep = 100						//Exit the algorithm after X step
   val output: String = ".\\KmeanOutput.txt"		//Where to print the ouput
   var threshold:Double = 0.225					//Threshold of OptBoolCluster
-  var emptyCluster : Boolean = false			//Use of the modified K-means for avoiding empty cluster
+  //var emptyCluster : Boolean = false			//Use of the modified K-means for avoiding empty cluster
   var loop : Boolean = false					//Empty cluster do not make algorithm looping
 
   /** ------------- ALGORITHM GLOBAL VARIABLES ------------ **/
@@ -113,8 +113,8 @@ object Kmeans {
   def update(cs:List[Cluster[_]]):Boolean = {
     
     val csCopy = cs.map(_.copy) //Copy of the cluster before the update
-    var centers : HashMap[Int,List[Double]] = new HashMap[Int,List[Double]]
-    var clusterSize: Array[Int] = new Array[Int](cluster)
+    var centers = new HashMap[Int,List[Double]]
+    var clusterSize = new Array[Int](cluster)
     
     def init():Unit = {
       //Initialize a list of double of size dimSize
@@ -147,7 +147,6 @@ object Kmeans {
         val elementVector = data.apply(elem._1)
         centers.put(x,sum(elementVector,actualClusterVector))
         clusterSize(x-1) += 1
-        //faire la somme des elements par cluster: tableau[int] of size cs.length
       }
     }  
     
@@ -159,28 +158,28 @@ object Kmeans {
        centers.put(elem._1,kMeans(elem._2))     
     }
      
-    def m_kMeans():Unit = {
-      
-      def ++(ls1:List[Double],ls2:List[Double]):List[Double] = (ls1,ls2) match {
-        case (Nil,Nil)=>Nil
-        case (x::xs,Nil)=>x::xs
-        case (x::xs,y::ys)=>(x+y):: ++(xs,ys)
-      }
-      for(i <- 1 to cluster) {
-        clusterSize(i-1) +=1
-        val exCenter = csCopy.apply(i-1).distWithList
-        val temp = centers.apply(i)
-        centers = centers-i
-        centers.put(i,++(temp,exCenter))
-      }     
-    }
-    
+  /*  def m_kMeans():Unit = {
+   *   
+   *   def ++(ls1:List[Double],ls2:List[Double]):List[Double] = (ls1,ls2) match {
+   *     case (Nil,Nil)=>Nil
+   *     case (x::xs,Nil)=>x::xs
+   *     case (x::xs,y::ys)=>(x+y):: ++(xs,ys)
+   *   }
+   *   for(i <- 1 to cluster) {
+   *     clusterSize(i-1) +=1
+   *     val exCenter = csCopy.apply(i-1).distWithList
+   *     val temp = centers.apply(i)
+   *     centers = centers-i
+   *     centers.put(i,++(temp,exCenter))
+   *   }     
+   * }
+   */ 
     //Initiate algorithm step
     init
     //For all observation, add their distance to their respective cluster
     clusteredData.foreach(addDistanceVector) 
     //If we run the modified kMean
-    if(emptyCluster) m_kMeans()
+    //if(emptyCluster) m_kMeans()
     //Divide by the cardinality of the number of observation
     centers.foreach(divide)       
     //Update the centroid
@@ -205,11 +204,6 @@ object Kmeans {
    	  print(str)
     })
   }
-  
-  //TODO cluster size
-  //TODO cb de method change de cluster
-  //TODO run complete Kmean after
-  //TODO unit test
   
   def optionStep:Unit = {
     bs = buildOptionClusters
@@ -276,10 +270,16 @@ object Kmeans {
     if(args.contains("-t")) dataPathToUse = testDataPath
     else if(args.contains("-lib")) dataPathToUse = libDataPath   
     //Choose k-mean or it's modified version | By default; false
-    if(args.contains("-noEmpty")) emptyCluster = true
+    //if(args.contains("-noEmpty")) emptyCluster = true
     //Choose if an empty cluster make loop the algorithm | by default; false
     if(args.contains("-noLoop")) loop = true
   }
+  
+  
+  //FIXME distance
+  //TODO pouvoir lancer sur un autre code
+  //ajouter feature
+  //aller voir dans le code 
   
   def main(args: Array[String]) = {
 
@@ -308,10 +308,10 @@ object Kmeans {
     	cs1stepAgo = cs.map(_.copy)
         assignment(cs)
     	println("round :"+i+"\t"+cs)
-    	i=i+1
+    	i+=1
        }
     }
-    printMyStuff
+    //printMyStuff
     //Transform DoubleCluster to OptBoolCluster and perform one step
     optionStep
     

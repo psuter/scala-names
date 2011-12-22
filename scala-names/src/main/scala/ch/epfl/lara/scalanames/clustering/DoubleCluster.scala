@@ -5,8 +5,8 @@ import scala.collection.immutable.List
 class DoubleCluster(val id:Int) extends Cluster[Double] {
 
     private var pos : List[Double] = List()
-    private var size : Int = 0
-	override def toString = "Double cluster "+id+
+
+    override def toString = "Double cluster "+id+
 							(if(isEmpty) " is empty"
 							else " contains "+size+" element(s) and is at position ["+pos.map(_.toString()).mkString(",")+"]")
     
@@ -18,17 +18,23 @@ class DoubleCluster(val id:Int) extends Cluster[Double] {
     
   def isEmpty = size==0
 
-  def distanceFrom(ls: List[Int]): Double = distance(ls.map(_.toDouble))
+  def distanceFrom(ls: List[Int]): Double = distanceFrom2(ls.map(_.toDouble))
   
-  def distanceFrom2(ls: List[Double]): Double = distance(ls)
+  def distanceFrom2(ls: List[Double]): Double = {
+     def inner(zhis: List[Double],that: List[Double]): Double = (zhis,that) match {
+      case (Nil,Nil)=> 0
+      case (x::xs,y::ys)=>  (x-y).abs+inner(xs,ys)
+    }   
+    if(isEmpty) Double.MaxValue else inner(getPos,ls)
+  }
   
-  def distance(ls: List[Double]): Double = {
+  /*def distance(ls: List[Double]): Double = {
      def inner(zhis: List[Double],that: List[Double]): Double = (zhis,that) match {
       case (Nil,Nil)=> 0
       case (x::xs,y::ys)=>  (x-y).abs+inner(xs,ys)
     }   
     inner(getPos,ls)
-  }
+  }*/
   
   def distWithList = getPos
   def getPos = pos 

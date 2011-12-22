@@ -5,7 +5,9 @@ import scala.collection.immutable.List
 class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolean]] {
   
   private var pos : List[Option[Boolean]] = List()
-  private var size : Int = 0
+  
+  /**Indicate the number of ? in that cluster **/
+  private var #? : Int = 0
 
   override def toString = "Option[Boolean] cluster "+id+ 
     					  (if(isEmpty) " is empty"
@@ -20,6 +22,8 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
   }
   
   def isEmpty = size==0
+  
+
   
   def setPosFromDouble(ls:List[Double],size:Int): Unit = {
     
@@ -54,10 +58,10 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
       case (Some(false)::xs,y::ys) => y+dist(xs,ys)
       case (None::xs,y::ys) => dist(xs,ys)
     }
-    dist(getPos,ls)
+    if(isEmpty) Double.MaxValue else ((size * dist(getPos,ls))/(size - #?))
   }
   
-  def distance(ls: List[Option[Boolean]]): Double = {   
+  /*def distance(ls: List[Option[Boolean]]): Double = {   
     def dist(zhis:List[Option[Boolean]],that:List[Option[Boolean]]): Double = (zhis,that) match {
       case (Nil,Nil) => 0
       case (Some(true)::xs,Some(true)::ys) => dist(xs,ys)
@@ -67,8 +71,9 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
       case (None::xs,y::ys) => dist(xs,ys)
       case (x::xs,None::ys) => dist(xs,ys)      
     }
-    dist(getPos,ls)
-  }
+  if(isEmpty) Double.MaxValue else ((size * dist(getPos,ls))/(size - #?)) //this line is wrong
+
+  }*/
   
   def distWithList = getPos.map(_ match{case Some(true)=>1.0;case _ =>0.0})
 
@@ -76,6 +81,13 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
   
   def getSize = size
   
-  def updatePos(ps: List[Option[Boolean]], size:Int): Unit = { pos = ps; this.size = size }
+  def updatePos(ps: List[Option[Boolean]], size:Int): Unit = { 
+    pos = ps
+    this.size = size
+    #? = 0
+    ps.map(_ match {case None=> #? += 1 ;case _ =>})
+    }
+  
+  def undefined = #?
 
 }

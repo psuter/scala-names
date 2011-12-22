@@ -5,6 +5,9 @@ abstract class Cluster[T] {
   /**cluster id**/
   val id:Int
   
+  /**indicate how many objects are in this cluster**/
+  protected var size:Int=0
+  
   def copy : Cluster[T]
   
   /**calculate the distance from this cluster to an observation**/
@@ -12,9 +15,6 @@ abstract class Cluster[T] {
   
   /**calculate the distance from this cluster to a list of double **/
   def distanceFrom2(ls:List[Double]):Double
-  
-  /**calculate the distance from this cluster to the list (representing another cluster) provided**/ 
-  def distance(ls:List[T]):Double
   
   /**return the pos variable**/
   def getPos : List[T]
@@ -24,7 +24,8 @@ abstract class Cluster[T] {
   
   def equals(that:Any):Boolean
   
-  def distWithList: List[Double]
+  /**used with m_kMeans **/
+  //def distWithList: List[Double]
   
   /**Update variable pos and the size of the cluster**/
   def updatePos(ps:List[T],size:Int):Unit
