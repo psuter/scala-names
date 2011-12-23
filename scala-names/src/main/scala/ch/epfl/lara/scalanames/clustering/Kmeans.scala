@@ -27,12 +27,14 @@ object Kmeans {
   var observations : Double = 0 				//Cardinality of the observation set
   val data = new HashMap[String,List[Int]]		//The observation set retrieved from the input file
   var clusteredData = new HashMap[String,Int] 	//The observation set classified by it's cluster
+  var endingCluster = new HashMap[String,Int]	//The result of the k_means algorithm
   var cs : List[DoubleCluster] = List()			//The list of all clusters
   var bs : List[OptBoolCluster] = List()		//The list of clusters used for final step
   var features = new HashMap[Int,String]		//List of feature for usefull output
   
   /** ------------ MISC ------------ **/
   lazy val out = new BufferedWriter(new FileWriter(output, false))
+  val rand = new Random
 
   //Initialize list of DoubleCluster of size nb
   def buildClusters(nb:Int):List[DoubleCluster]= nb match {
@@ -84,11 +86,7 @@ object Kmeans {
   }
   
   //Assign to every element a cluster at random
-  def randomPartition:Unit ={
-    val rand = new Random
-    for(d <- data.keySet){
-      clusteredData.put(d,rand.nextInt(cluster)+1)
-  }}
+  def randomPartition:Unit = data.foreach(d => clusteredData.put(d._1,rand.nextInt(cluster)+1))
   
   def assignment(cs:List[Cluster[_]]):Unit = {
     
@@ -207,10 +205,21 @@ object Kmeans {
   
   def optionStep:Unit = {
     bs = buildOptionClusters
-    val formerBs = bs.map(_.copy)
+    val formerBs = bs.map(_.copy)  
+    
     assignment(bs)
     val mod : Boolean = update(bs)
-    println("---Clusters are"+(if(!mod)" not" else "")+" modified---")
+    val moved : Int = endingCluster.filter(x => clusteredData.apply(x._1)!=x._2).size   
+    val emptyC : Int = bs.filter(_.isEmpty).size
+       
+    def pick3atRandom(c: Cluster[_]) = {
+      if(!c.isEmpty){
+    	val mcs = clusteredData.filter(_._2==c.id).toIndexedSeq
+    	val size = mcs.size
+    	for (i <- 1 to 3) {
+    	  val m = mcs.apply(rand.nextInt(size))
+    	  println("method: "+m._1+" in cluster "+m._2)
+    }}}
     def haz(optBoolC: OptBoolCluster): Unit = {
       def inner(os:List[Option[Boolean]],id:Int):Unit = os match {
       	case Nil => 
@@ -218,13 +227,21 @@ object Kmeans {
       	case Some(false)::xs => println("Haz NOT "+features(id)); inner(xs,id+1) //Haz not
       	case None::xs => inner(xs,id+1)
       }
-      inner(optBoolC.getPos,1)
+      if(!optBoolC.isEmpty) inner(optBoolC.getPos,1)
     }
     def prettyOutput(cs:List[DoubleCluster],fbs:List[OptBoolCluster],bs:List[OptBoolCluster]): Unit = (cs,fbs,bs) match {
-      case (Nil,Nil,Nil) =>
-      case (x::xs,y::ys,z::zs) => println(x+"\n"+y+"\n"+z);if(!z.isEmpty)haz(z); prettyOutput(xs,ys,zs)
-      case _ =>
+      case (Nil,Nil,Nil) => println("# objects moved during the one step-check: "+moved+
+    		  						"\nEmptyCluster: "+emptyC+
+    		  						"\nClusters are"+(if(!mod)" not" else "")+" modified")
+      case (x::xs,y::ys,z::zs) => {
+        println(x+"\n"+y+"\n"+z)
+        haz(z)
+        pick3atRandom(z)
+        prettyOutput(xs,ys,zs)
+      }
+      case _ => //something went wrong
     }
+    
     prettyOutput(cs,formerBs,bs)
   }
   
@@ -311,6 +328,8 @@ object Kmeans {
     	i+=1
        }
     }
+    //Copy 
+    endingCluster ++= clusteredData
     //printMyStuff
     //Transform DoubleCluster to OptBoolCluster and perform one step
     optionStep
