@@ -23,7 +23,7 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
   
   def isEmpty = size==0
   
-
+  def isCompletelyUndefined : Boolean = size == #?
   
   def setPosFromDouble(ls:List[Double],size:Int): Unit = {
     
@@ -58,7 +58,7 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
       case (Some(false)::xs,y::ys) => y+dist(xs,ys)
       case (None::xs,y::ys) => dist(xs,ys)
     }
-    if(isEmpty) Double.MaxValue else ((size * dist(getPos,ls))/(size - #?))
+    if(isEmpty || isCompletelyUndefined) Double.MaxValue else ((size * dist(getPos,ls))/(size - #?))
   }
   
   /*def distance(ls: List[Option[Boolean]]): Double = {   
@@ -71,7 +71,7 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
       case (None::xs,y::ys) => dist(xs,ys)
       case (x::xs,None::ys) => dist(xs,ys)      
     }
-  if(isEmpty) Double.MaxValue else ((size * dist(getPos,ls))/(size - #?)) //this line is wrong
+  if(isEmpty || isCompletelyUndefined) Double.MaxValue else ((size * dist(getPos,ls))/(size - #?)) //this line is wrong
 
   }*/
   
@@ -81,13 +81,14 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
   
   def getSize = size
   
+  def undefined = #?
+  
   def updatePos(ps: List[Option[Boolean]], size:Int): Unit = { 
     pos = ps
     this.size = size
     #? = 0
     ps.map(_ match {case None=> #? += 1 ;case _ =>})
     }
-  
-  def undefined = #?
+
 
 }

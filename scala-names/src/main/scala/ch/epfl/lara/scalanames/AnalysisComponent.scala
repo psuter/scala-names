@@ -16,6 +16,8 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
   override val runsAfter : List[String]        = List("refchecks")
 
   val phaseName = pluginInstance.name
+  var printy = false		//Print in the output file
+  var featureID = false		//Print in the output file the features ID
 
   class AnalysisPhase(prev : Phase) extends StdPhase(prev) {
     private val nameCollectors : MutableMap[CompilationUnit,NameCollector] = MutableMap.empty
@@ -78,15 +80,16 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new ContainsCompleteReturnTypeInName{
           							   val id = 27 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ContainsPartialReturnTypeInName{
-           							   val id = 28 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+           							   val id = 28 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new RightAssociative{ 	   val id = 29 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsInnerMethod{		   val id = 30 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
           //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
 
       
 
       )
-      
-      var printy = true    
-    /*  if(printy){
+ 
+      if(featureID){
           out.write("{\n")
     	  for(f <- featureList){
     		  try{
@@ -96,7 +99,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
     	  }}
           out.write("}\n")
           out.flush
-      }*/
+      }
       
       // check all instenciated features for all MethodDef found     
       for(defn <- nc.collectedDefinitions) {
