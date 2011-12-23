@@ -9,13 +9,13 @@ trait ContainsPartialReturnTypeInName extends ContainsAcronym {
   override def appliesTo(methodDef: MethodDef): Boolean = { 
     
     //camel phrase
-    val cp = reconstructAcronym(methodDef.name)
+    val cp = reconstructPhrase(methodDef.name)
     if(cp.length>0){
       
       val upperCp = firstLetterToUpperCase(cp)
       //retrieve type  
       val typeName = resultType(methodDef.rettype)
-      val splitedTypeName = reconstructAcronym(typeName)
+      val splitedTypeName = reconstructPhrase(typeName)
 	
 	splitedTypeName.length match {
       case 0 => false

@@ -11,8 +11,8 @@ trait AbstractPhrase extends ContainsAcronym {
     
   override def appliesTo(methodDef: MethodDef): Boolean = {
 
-    val cp = reconstructAcronym(methodDef.name)    
-    if(cp.length > 0) validAbstractPhrase(cp) else false
+    val cp = reconstructPhrase(methodDef.name)    
+    validAbstractPhrase(cp)
   }
   
   /** Considered as valid camel phrase:

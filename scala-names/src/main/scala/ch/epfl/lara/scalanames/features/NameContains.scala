@@ -13,8 +13,8 @@ trait NameContains extends ContainsAcronym {
     //If this word is inside a camel phrase, it will begin with a UpperCase letter
     val UpperCasePattern = (pattern.head.toUpperCase)+pattern.tail
 
-    //Reconstruct a camel phrase
-    val cp = reconstructAcronym(methodDef.name)
+    //Reconstruct a phrase
+    val cp = reconstructPhrase(methodDef.name)
     
     //test if it contains the given pattern
     def apply(ws: List[String]):Boolean = ws match {

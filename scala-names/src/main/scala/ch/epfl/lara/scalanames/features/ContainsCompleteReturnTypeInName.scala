@@ -9,11 +9,11 @@ trait ContainsCompleteReturnTypeInName extends ContainsPartialReturnTypeInName {
       
   override def appliesTo(methodDef: MethodDef): Boolean = {
     
-	val cp = reconstructAcronym(methodDef.name)
+	val cp = reconstructPhrase(methodDef.name)
     	
 	if(cp.length>0){
 	  val upperCp = firstLetterToUpperCase(cp)
-	  val splitTypeName = reconstructAcronym(resultType(methodDef.rettype))
+	  val splitTypeName = reconstructPhrase(resultType(methodDef.rettype))
 	  
 	  splitTypeName.length match {
 	    case 0 => false
