@@ -82,7 +82,16 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new ContainsPartialReturnTypeInName{
            							   val id = 28 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new RightAssociative{ 	   val id = 29 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsInnerMethod{		   val id = 30 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new IsInnerMethod{		   val id = 30 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsInnerMethod{ 	   val id = 31 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsOverride{		 	   val id = 32 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsAbstract{		 	   val id = 33 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsPublic{			 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsStatic{			 	   val id = 35 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+
+         // new InferedType{		 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+
+
           //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
 
       
