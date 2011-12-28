@@ -38,8 +38,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
       import global.definitions.{ getClass => gc }
       
       val featureList : List[MethodFeature { val component : AnalysisComponent.this.type }] = List(
-          new ReturnSubtypeOf { val traitSymbol = gc("scala.collection.Traversable");
-          							   val id =  1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ReturnsTraversable{ 	   val id =  1 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ReturnSubtypeOf { val traitSymbol = gc("scala.AnyRef");
           							   val id =  2 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new ReturnTypeIs { val traitSymbol = gc("scala.Unit");
@@ -87,7 +86,11 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new IsOverride{		 	   val id = 32 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new IsAbstract{		 	   val id = 33 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new IsPublic{			 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new IsStatic{			 	   val id = 35 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new IsStatic{			 	   val id = 35 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new NameFinishWith{ val pattern = "s"
+            						   val id = 36 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new NameFinishWith{ val pattern = "ss"
+            						   val id = 36 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
          // new InferedType{		 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
