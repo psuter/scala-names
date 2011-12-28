@@ -6,7 +6,7 @@ trait NameFinishWith extends MethodFeature {
   
   val pattern : String
   
-  val name = "This method finish with "+pattern
+  lazy val name = "This method finish with "+pattern
     
   def appliesTo(methodDef: MethodDef): Boolean = pattern.length match {
     case 0 => false

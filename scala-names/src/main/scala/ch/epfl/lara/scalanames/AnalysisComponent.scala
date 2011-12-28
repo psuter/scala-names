@@ -90,7 +90,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new NameFinishWith{ val pattern = "s"
             						   val id = 36 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameFinishWith{ val pattern = "ss"
-            						   val id = 36 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+            						   val id = 37 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
          // new InferedType{		 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
