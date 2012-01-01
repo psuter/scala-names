@@ -20,8 +20,7 @@ trait InferedType extends MethodFeature {
     //println(methodDef.rettype)
     //println(methodDef.d.symbol.isExistentialQuantified)
     //println(methodDef.d.symbol.isImplOnly)
-    
-  
+    /**NEED another phase to obtain this information**/
   false}
 
 }
