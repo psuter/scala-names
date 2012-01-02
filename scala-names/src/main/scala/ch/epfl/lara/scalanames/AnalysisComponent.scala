@@ -7,6 +7,9 @@ import ch.epfl.lara.scalanames.features._
 import java.io.BufferedWriter
 import java.io.FileWriter
 import edu.smu.tspell.wordnet.WordNetDatabase
+import java.io.BufferedReader
+import java.io.FileReader
+import scala.collection.mutable.HashMap
 
 abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends PluginComponent with Definitions {
   val global : Global
@@ -18,13 +21,16 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
   val phaseName = pluginInstance.name
   var printy = false		//Print in the output file
   var featureID = false		//Print in the output file the features ID
+  var analysis = false		//Test a new file compared to the scala lib
 
   class AnalysisPhase(prev : Phase) extends StdPhase(prev) {
     private val nameCollectors : MutableMap[CompilationUnit,NameCollector] = MutableMap.empty
     
     val testOutput = ".\\testOutput.txt"
     val libOutput = ".\\libOutput.txt"
-    lazy val out = new BufferedWriter(new FileWriter(libOutput, true))
+    val analysisOutput = ".\\analysisOutput.txt"  
+    lazy val out = new BufferedWriter(new FileWriter(if(analysis)analysisOutput else libOutput, true))
+    lazy val analysedData = new HashMap[String, List[Int]]
 
     val wordNetPath : String = "C:\\Program Files\\WordNet\\2.1\\dict" 
     System.setProperty("wordnet.database.dir", wordNetPath)
@@ -92,47 +98,71 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new NameFinishWith{ val pattern = "ss"
             						   val id = 37 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
-         // new InferedType{		 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
-
-
-          //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+         // new InferedType{		 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this } NOT WORKING
+         //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
 
       
 
-      )
- 
-      if(featureID){
+      ) 
+      
+      //Print the features if needed
+        if(featureID){
           out.write("{\n")
     	  for(f <- featureList){
     		  try{
     			out.write(f.id+";"+f.name+"\n")
     		  } catch {
-    		  	case e => println("I/O error ")
+    		  	case e => println("I/O error: "+e)
     	  }}
           out.write("}\n")
           out.flush
-      }
-      
-      // check all instenciated features for all MethodDef found     
-      for(defn <- nc.collectedDefinitions) {
-        defn match {
-          case md : MethodDef => {
-            if(!md.synthetic) {
-              val str =featureList.map(f => if(f.appliesTo(md)) 1 else 0).mkString(" ") + " " + md.UniqueName + "\n" 
-              //Print into file
-              if(printy){
-                try{
-                  out.write(str)
-                  out.flush 
-                } catch {
-              	  case e => print("I/O error "+e.toString()+" during: "+str); printy=false
-              }}              
-              print(str)          
-          }}
-          case _ =>
+        }
+        // check all instenciated features for all MethodDef found     
+        for(defn <- nc.collectedDefinitions) {
+          defn match {
+            case md : MethodDef => {
+              if(!md.synthetic) {
+                val sign = featureList.map(f => if(f.appliesTo(md)) 1 else 0)
+                val str =sign.map(f=>f).mkString(" ") + " " + md.UniqueName + "\n"
+                if(analysis) analysedData.put(md.UniqueName,sign)
+                //Print into file
+                if(printy){
+                  try{
+                    out.write(str)
+                    out.flush 
+                  } catch {
+              	    case e => print("I/O error "+e.toString()+" during: "+str); printy=false
+                }}              
+                print(str)          
+            }}
+            case _ =>
       }}
+
+      if(analysis){
+        import ch.epfl.lara.scalanames.clustering._
+        
+        val libClust = LibCluster
+        libClust.apply()
+        if (libClust.checkFeatures(featureList.map(f => (f.id,f.name)))){
+          for(md <- analysedData) { 
+                try{
+                  val clustDist = libClust.nearestClusterWithDistance(md._2)
+                  out.write(md._2 +"\t"+ md._1)
+                  out.write("Nearest cluster: "+clustDist._1 +" at distance "+clustDist._2+"\n")
+                  out.write("Similar methods:\n\t")
+                  val three = libClust.take3AtRandom(clustDist._1.id)
+                  out.write(three._1);out.write(three._2);out.write(three._3)
+                  
+                } catch {
+                  case e => println("I/O error: "+e)
+                }
+              }
+            
+        } else println("please rebuild the feature list before analysis.")    
+        
+      } 
       
-    }
+   }
 
   }
   
@@ -170,13 +200,14 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
             mods.hasAccessorFlag ||
             mods.isParamAccessor ||
             mods.isCaseAccessor ||
-            mods.isSuperAccessor ||           
+            mods.isSuperAccessor ||              
             d.name.toString().equals("<init>") ||
             d.name.debugString().equals("$init$")||
             d.name.toString == "readResolve" //this is not synthetical, but it's not a method definition, so don't care
           )
           
-          Some(MethodDef(name.debugString(),d,isSynth,d.pos))
+          if(!d.symbol.isStable) Some(MethodDef(name.debugString(),d,isSynth,d.pos))
+          else Some(Any(d.name.debugString(), Object, mods.isSynthetic, d.pos))
         }
         case d @ ModuleDef(mods, _, _) => {
           Some(Any(d.name.toString, Object, mods.isSynthetic, d.pos))
@@ -197,7 +228,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
 
       optDfn match {
         case Some(dfn) => {
-          println(dfn)
+          //println(dfn)
           // ln("Mods : " + tree.asInstanceOf[MemberDef].mods)
           definitions += dfn
 

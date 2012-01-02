@@ -13,14 +13,15 @@ object Kmeans {
   /** ------------- ARGUMENTS ------------- **/
   val libDataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\libOutput.txt"
   val testDataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\testOutput.txt"
+  val output = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\KmeanOutput.txt"
   var dataPathToUse = testDataPath				//Where to find the good file
   var printy = false 							//If true, print out in output file
   var cluster = 10 								//Number of wanted clusters
   var endAfterXStep = 100						//Exit the algorithm after X step
-  val output: String = ".\\KmeanOutput.txt"		//Where to print the ouput
   var threshold:Double = 0.225					//Threshold of OptBoolCluster
   //var emptyCluster : Boolean = false			//Use of the modified K-means for avoiding empty cluster
   var loop : Boolean = false					//Empty cluster do not make algorithm looping
+  var analysis = false							//If the output should be for the analysis plugin
 
   /** ------------- ALGORITHM GLOBAL VARIABLES ------------ **/
   var dimSize = 0 								//The dimension size of observations 
@@ -189,20 +190,6 @@ object Kmeans {
     csCopy != cs
   }
   
-  def printMyStuff = {
-   	println("---------RESULTS--------")
-   	clusteredData.foreach(elem => {
-   	  val str = elem._2 +"\t"+elem._1+"\n"
-   	  if(printy){
-   	    try{
-   	      out.write(str)
-        } catch {
-    	  case e => println("error during printing output"); printy=false
-   	  }}
-   	  print(str)
-    })
-  }
-  
   def optionStep:Unit = {
     bs = buildOptionClusters
     val formerBs = bs.map(_.copy)  
@@ -217,8 +204,9 @@ object Kmeans {
     	val mcs = clusteredData.filter(_._2==c.id).toIndexedSeq
     	val size = mcs.size
     	for (i <- 1 to 3) {
+    	  import m.{_1 => name }
     	  val m = mcs.apply(rand.nextInt(size))
-    	  println("method: "+m._1+" in cluster "+m._2)
+    	  println("method: "+name+" in cluster "+m._2+"\nSign: "+data.apply(name))
     }}}
     def haz(optBoolC: OptBoolCluster): Unit = {
       def inner(os:List[Option[Boolean]],id:Int):Unit = os match {
@@ -243,6 +231,31 @@ object Kmeans {
     }
     
     prettyOutput(cs,formerBs,bs)
+  }
+  
+  def analysisPhase = {
+    def printCluster(c: OptBoolCluster):Unit = {
+      out.write("<cl>\n")
+      out.write(c.id+" "+c.getPos.map(_ match {case Some(false) => 0; case Some(true) => 1; case None => "?"}).mkString(" ")+"\n")
+    }
+    def printMethod(m: (String,Int)):Unit = {
+      out.write("<m>\n")
+      out.write(m._2+" "+m._1+"\n")
+    }
+    def printFeature(f: (Int,String)):Unit = {
+      out.write("<f>\n")
+      out.write(f._1+" "+f._2+"\n")
+    }
+    if (analysis){
+      try{
+        bs.foreach(printCluster)
+        endingCluster.foreach(printMethod)
+        features.foreach(printFeature)
+        out.flush()
+      } catch {
+        case e => println("I/O error: "+e)
+      }
+    }
   }
   
     //TODO add args outputfile
@@ -290,13 +303,11 @@ object Kmeans {
     //if(args.contains("-noEmpty")) emptyCluster = true
     //Choose if an empty cluster make loop the algorithm | by default; false
     if(args.contains("-noLoop")) loop = true
+    if(args.contains("-analysis")) analysis = true
   }
   
-  
-  //FIXME distance
-  //TODO pouvoir lancer sur un autre code
-  //ajouter feature
-  //aller voir dans le code 
+  //TODO ajouter feature
+  //TODO aller voir dans le code 
   
   def main(args: Array[String]) = {
 
@@ -333,6 +344,7 @@ object Kmeans {
     //printMyStuff
     //Transform DoubleCluster to OptBoolCluster and perform one step
     optionStep
+    analysisPhase
     
   }
 }

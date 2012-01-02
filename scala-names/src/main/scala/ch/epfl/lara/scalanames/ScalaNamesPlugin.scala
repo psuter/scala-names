@@ -9,6 +9,7 @@ class ScalaNamesPlugin(val global : Global) extends Plugin {
     
   val printOption = "pOutput" 
   val printFeatureID = "pFeatureId"
+  val analysis = "pAnalysis"  
 
   val analysisComponent = new AnalysisComponent(this) {
     val global : ScalaNamesPlugin.this.global.type = ScalaNamesPlugin.this.global
@@ -23,7 +24,8 @@ class ScalaNamesPlugin(val global : Global) extends Plugin {
   // This function adds information to "scalac -help" when the plugin is used.
   override val optionsHelp : Option[String] = Some(
     "  -P:"+name+":"+printOption+"             Print results in outputfile" + "\n" +
-    "  -P:"+name+":opt2             Uses option 2" + "\n"
+    "  -P:"+name+":"+printFeatureID+"             Print the feature before the results" + "\n" +
+    "  -P:"+name+":"+analysis+"             Run analysis on the specified file compared to the scala lib" + "\n"
   )
 
   // This function is called by the scala compiler with all -P:myplugin:* options.
@@ -32,6 +34,7 @@ class ScalaNamesPlugin(val global : Global) extends Plugin {
     for(option <- options) option match {
       case x if(printOption==x) => { analysisComponent.printy = true }
       case x if(printFeatureID==x) => { analysisComponent.featureID = true }
+      case x if(analysis==x) => { analysisComponent.analysis = true }
       case _ => error(name+" doesn't support option : " + option)
     }
   }

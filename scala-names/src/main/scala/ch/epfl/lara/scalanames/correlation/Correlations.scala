@@ -1,4 +1,6 @@
 package ch.epfl.lara.scalanames.correlation
+import java.io.BufferedWriter
+import java.io.FileWriter
 
 //@author Philippe Sutter
 
@@ -8,33 +10,50 @@ object Correlations {
     if(args.size > 0) {
       val in = parseFile(args(0))
       println("# Parsed " + in.size + " lines of dimension " + in(0).size + ".")
-      val m = buildMatrix(in, impl, false)
-
+      val m = buildMatrix(in, corr, false) //corr,impl,jaccardCoef //true,false,true
+      val m2 = buildMatrix(in, impl, false)
+      val m3 = buildMatrix(in, jaccardCoef, false)
+      
       println("# Correlation matrix: ")
-
-      for(line <- m) {
-        println(line.map(v => "%1.2f".format(v)).mkString(" "))
-      }
+      val out1 = new BufferedWriter(new FileWriter("C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\corrCOR.txt", false))
+      printOutput(m,out1)
+      println("2:")
+      printOutput(m2,new BufferedWriter(new FileWriter("C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\corrIMP.txt", false)))
+      println("3:")
+      printOutput(m3,new BufferedWriter(new FileWriter("C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\corrJAC.txt", false)))
+      
     } else {
       Console.println("No file given, I'll be using a random matrix for demo purposes.")
       val m = buildMatrix(Data.randomSet, corr, true)
 
-      for(line <- m) {
-        println(line.map(v => "%1.2f".format(v)).mkString(" "))
-      }
     }
+  }
+  
+  def printOutput(matrix: Array[Array[Double]], out: BufferedWriter):Unit = {
+      for(line <- matrix) {
+        val str = line.map(v => "%1.2f".format(v)).mkString(" ")+"\n"
+        print(str)
+        try{
+        	out.write(str)
+        	out.flush()
+        }catch{
+          case e => println(e)
+        }
+      }
   }
 
   def parseFile(fileName : String) : Seq[Seq[Boolean]] = {
     val lines = scala.io.Source.fromFile(fileName).getLines
-
+    		
     var lineSz = -1
+    var parse : Boolean = true
 
     (for(line <- lines) yield {
-      val boolArray : Seq[Boolean] = line.split(" ").tail.map(_ match {
+      
+      val boolArray : Seq[Boolean] = line.split(" ").reverse.tail.reverse.map(_ match {
         case "1" => true
         case "0" => false
-        case _ => sys.error("Expected 0 or 1 here.")
+        case x => sys.error("Expected 0 or 1 here: "+x)
       }).toSeq
 
       if(lineSz >= 0) {
@@ -98,7 +117,7 @@ object Correlations {
 
   // Measure of implication. This is NOT symmetric !
   def impl(x : Seq[Boolean], y : Seq[Boolean]) : Double = 
-    dist(x, y, (a: Int, b: Int, c: Int, d: Int) => (a + c).toDouble / (a + b + c + d).toDouble)
+    dist(x, y, (a: Int, b: Int, c: Int, d: Int) => (a + c - b).toDouble / (a + b + c + d).toDouble)
 
   // Distance between two boolean vectors using a given metric.
   def dist(x : Seq[Boolean], y : Seq[Boolean], metric : (Int,Int,Int,Int)=>Double) : Double = {

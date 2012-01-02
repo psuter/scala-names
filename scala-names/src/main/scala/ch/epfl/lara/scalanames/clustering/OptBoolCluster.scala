@@ -3,7 +3,7 @@ package ch.epfl.lara.scalanames.clustering
 import scala.collection.immutable.List
 
 class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolean]] {
-  
+    
   private var pos : List[Option[Boolean]] = List()
   
   /**Indicate the number of ? in that cluster **/
@@ -37,15 +37,7 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
   }
    
   override def equals(that: Any):Boolean = (that != null) && (that match {
-      case b:OptBoolCluster if(b.id == id)=> {       
-        def inner(zhis: List[Option[Boolean]],that:List[Option[Boolean]]): Boolean = (zhis,that) match {
-          case (Nil,Nil) => true
-          case (None::xs,None::ys) => inner(xs,ys)
-          case (Some(x)::xs,Some(y)::ys) if(x==y) => inner(xs,ys)
-          case _ => false
-        }
-        inner(getPos,b.getPos)
-      }      
+      case b:OptBoolCluster if(b.id == id)=> getPos==b.getPos
       case _ => false
   })
 
