@@ -140,26 +140,24 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
 
       if(analysis){
         import ch.epfl.lara.scalanames.clustering._
+        try{
+          val libClust = LibCluster
+          //libClust.apply()
         
-        val libClust = LibCluster
-        libClust.apply()
-        if (libClust.checkFeatures(featureList.map(f => (f.id,f.name)))){
-          for(md <- analysedData) { 
-                try{
-                  val clustDist = libClust.nearestClusterWithDistance(md._2)
-                  out.write(md._2 +"\t"+ md._1)
-                  out.write("Nearest cluster: "+clustDist._1 +" at distance "+clustDist._2+"\n")
-                  out.write("Similar methods:\n\t")
-                  val three = libClust.take3AtRandom(clustDist._1.id)
-                  out.write(three._1);out.write(three._2);out.write(three._3)
-                  
-                } catch {
-                  case e => println("I/O error: "+e)
-                }
-              }
-            
-        } else println("please rebuild the feature list before analysis.")    
-        
+          if (libClust.checkFeatures(featureList.map(f => (f.id,f.name)))){
+            for(md <- analysedData) { 
+
+                val clustDist = libClust.nearestClusterWithDistance(md._2)
+                out.write(md._2 +"\t"+ md._1)
+                out.write("Nearest cluster: "+clustDist._1 +" at distance "+clustDist._2+"\n")
+                out.write("Similar methods:\n\t")
+                val three = libClust.take3AtRandom(clustDist._1.id)
+                out.write(three._1);out.write(three._2);out.write(three._3)
+            }  
+          } else println("please rebuild the feature list before analysis.")    
+        } catch {
+          case e => println("I/O error: "+e)
+        }
       } 
       
    }
@@ -206,8 +204,9 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
             d.name.toString == "readResolve" //this is not synthetical, but it's not a method definition, so don't care
           )
           
-          if(!d.symbol.isStable) Some(MethodDef(name.debugString(),d,isSynth,d.pos))
-          else Some(Any(d.name.debugString(), Object, mods.isSynthetic, d.pos))
+          if(d.symbol.caseModule.exists && d.symbol.caseModule.name==d.symbol.name)
+            Some(Any(d.name.debugString(), Object, mods.isSynthetic, d.pos))
+          else Some(MethodDef(name.debugString(),d,isSynth,d.pos))
         }
         case d @ ModuleDef(mods, _, _) => {
           Some(Any(d.name.toString, Object, mods.isSynthetic, d.pos))
