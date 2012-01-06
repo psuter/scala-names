@@ -14,13 +14,28 @@ trait IsValidJavaName extends MethodFeature {
       case _ => false
    }
    
-    //Check first character. Java valid name start with a letter
-    if(methodDef.name.head.isLetter){
-      if(methodDef.name.length() >1) checkTail(methodDef.name)
-      else true
+    //Check if this name is a java keyword
+    if(!isJavaKeyword(methodDef.name)) {
+        //Check first character. Java valid name start with a letter
+    	if(methodDef.name.head.isLetter){
+    		if(methodDef.name.length() >1) checkTail(methodDef.name)
+    		else true
+    	} else false
     } else false
   }
   
+  def isJavaKeyword(word: String):Boolean = word match {
+    case "abstract" | "default" | "if" | "private" | "this" |
+    "boolean" | "do" | "implements" | "protected" | "throw" |
+    "break" | "double" | "import" | "public" | "throws" | 
+    "byte" | "else" |  "instanceof" | "return" | "transient" |
+    "case" | "extends" | "int" | "short" | "try" | "catch" | 
+    "final" | "interface" | "static" | "void" | "char" | "finally" | 
+    "long" | "strictfp" | "volatile" | "class" | "float" |
+    "native" | "super" | "while" | "const" | "for" | "new" |
+    "switch" | "continue" | "goto" | "package" | "synchronized" |
+    "null" | "true" | "false" => true
+  }
   
 
 }
