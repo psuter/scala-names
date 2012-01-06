@@ -42,14 +42,23 @@ The plug-in then check for every method definition found if that method have a g
 A feature is a boolean property that a method may satisfy or not. 
 
 \begin{enumerate}
-\item Return type is a collection :
-\item Return type is a subclass of Object : 
-\item Return type is Unit :
-\item Return type is boolean : 
-\item Return type is an Integer :
-\item Return type is a String : 
-\item Method take no parameter :
-\item Method is declared without parenthesis :
+\item Return type is a collection :\\
+	The return type is a collection. To be enough general to match a return of a List, a Set or a Map, it's implemented to match any class that extends the Traversable trait~\cite{travers}.
+\item Return type is an Object : \\
+	This feature match any return type that extends the AnyRef class~\cite{anyRef}.
+\item Return type is Unit :\\
+	This feature match if the return type is Unit.
+\item Return type is boolean : \label{fBool}\\
+	Straight forward, this feature match boolean return type.
+\item Return type is an Integer :\label{fInt}\\
+	Same as feature~\ref{fBool} with Integer return type.
+\item Return type is a String : \\
+	Same as features~\ref{fBool} and~\ref{fInt} with String return type.
+\item Method take no parameter :\label{fNoParam}\\
+	This method is a variant of feature~\ref{fNoParenthesis} .
+\item Method is declared without parenthesis :\label{fNoParenthesis}\\
+	%This feature is a variant of feature~\ref{fNoParam}.
+In Scala when a programmer declare a function that take no argument, it's possible to write with or without parenthesis. With parenthesis indicate that this function have side effect; modifying data, printing out on std. In the AbstractSyntaxTree produced by the compiler, the parameters of a method are returned as a List of List. If the first list is empty, then it indicate that this method is declared without parameters and no parenthesis and should therefore have no side-effect. If the first list is of size one and contains an empty list, we have here a method declared without parameters but with parenthesis and thus with possible side-effect. And if the first list have a bigger size than one, it indicate we are dealing with a currified function.
 \item Method body contains IF statement :\\
 	The method body contain an IF branch. Note that the Scala compiler translate WHILE block and DO-WHILE block with a IF branch. These two case should not match this feature as the programmer did not write any IF branch. IF guard statement in pattern matching are not taken in account as IF branch. However an IF branch inside a pattern matching right hand side will match.\\
 IF branch matching inside pattern matching right hand side:
@@ -75,20 +84,34 @@ ls \=match \{\\
 	The method body contains pattern matching. If match if the method body contains a MATCH statement.
 \item Method body contains explicit THROW statement :\\
 	The method body contains a THROW statement. It match only if it's explicitly declared. A NumberFormatException raised by a wrong string applied to \textit{.toInt} will not match.
-\item Method is currified : 
+\item Method is currified : \\
+	This feature is a variant of feature~\ref{fNoParenthesis}.
 \item Method is self-recursive : \\
 	This method call it-self in it's body. The feature don't match for other method even with surcharged identifiers.
-\item Method name is a verb : 
-\item Method name is a noun :
-\item Method name is a camel phrase :
-\item Method name contains an acronym :
-\item Method name match an abstract phrase construction : 
-\item Method name contains "is" pattern :\label{fContainsIs}
-\item Method name contains "get" pattern :\label{fContainsGet}\\
+\item Method name is a verb : \label{fVerb}\\
+	This feature match if the method name is a verb. It could be an infinitive or a conjugated form. For this feature, it use the WordNet 2.1 database~\cite{wordNet} to determine it.
+\item Method name is a noun :\\
+	This feature match is the method name is a noun. As in feature~\ref{fVerb}, it use also the WordNet 2.1 database~\cite{wordNet}.
+\item Method name is a camel case phrase : \label{fCamel}\\
+	An unique word is not always meaningful to name a method. As C convention use underscore-separated words like "end\_of\_file", Java and Scala convention use camel case. Camel case is a practice of writing several words composed without white space but with the first letter of each word in uppercase. The first letter of the first word may or not be in uppercase.\\
+This feature split the method name by the non-letter characters and by uppercase letters. Then it reconstruct potential acronym like in~\ref{fAcronym}. Then the feature will match if the split is composed at least of two words and if the second and followings words begin with an uppercase letter. Example:
+\code{\small aCamel++Case\_PhraseWithXML \= =$>$\small List(a, Camel, Case, Phrase, With, X, M, L)\\
+\>\small=$>$ List(a, Camel, Case, Phrase, With, XML)\\
+\>\small=$>$ true
+}
+Note that \textit{an\_Underscore\_Separated\_Phrase} will match this feature as all words, except the first, begin with an uppercase letter.
+\item Method name contains an acronym :\label{fAcronym}\\
+	An acronym is defined by the aggregation of uppercase letter and digit. It must start with a letter. Non-letter nor digit characters are considered, as in feature~\ref{fCamel}, as blank and thus discarded. Inside a camel case phrase, the acronym is construct correctly: the acronym inside \textit{XMLAsString} is reconstruct as \textit{XML}. But as the underscore will also considered as a blank, two acronym separated by an underscore will create one acronym instead of two.\\
+This feature will match if the method name contains at least one word that is an acronym.
+\item Method name match an abstract phrase construction : \\
+
+\item Method name contains \textit{is} pattern :\label{fContainsIs}\\
+	This feature match if the method name contains the word \textit{is}. \textit{is} can be written \textit{is} or \textit{Is}. As in features~\ref{fCamel} and~\ref{fAcronym}, the method name is split into words. Then if at least one word is \textit{is}, then the feature will match. 
+\item Method name contains \textit{get} pattern :\label{fContainsGet}\\
 	Straight forward, it's implemented the same way as feature~\ref{fContainsIs}.
-\item Method name contains "set" pattern :\label{fContainsSet}\\
+\item Method name contains \textit{set} pattern :\label{fContainsSet}\\
 	Same as features~\ref{fContainsIs} and~\ref{fContainsGet}.
-\item Method name contains "contains" pattern :\\
+\item Method name contains \textit{contains} pattern :\\
 	Same as features~\ref{fContainsIs},~\ref{fContainsGet} and~\ref{fContainsSet}.
 \item Method name is a valid JAVA name :\\
 	A valid JAVA method name is a series of JAVA letters or JAVA digit that begin with a JAVA letter~\cite{jls_ident} and that is not a JAVA keyword~\cite{jls_keyword}. %pas tout à fait...
@@ -109,15 +132,31 @@ ls \=match \{\\
 \item Method return type is completely contained into the method name :
 \item Method return type is partially contained into the method name :\label{fReturnTypeComplete}\\
 	This feature is a variant of feature~\ref{fReturnTypeComplete}. For composed type name, as programmer are often lazy, they often write it partially. One would by example write only "Tree" instead of "AbstractSyntaxTree". This feature will match in such case as previous feature will not. It will also match if the type is completely contained, like~\ref{fReturnTypeComplete}.
-\item Method is right associative :
-\item Method is declared into another method :
-\item Method body contains inner method definition :
-\item Method is overriding another method :
-\item Method is abstract :
-\item Method is public :
-\item Method is static :
-\item Method name finish with "s" :
-\item Method name finish with "ss" : 
+\item Method is right associative :\\
+	Scala language is left associative. But a method name that finish with the \textit{:} character is right associative.
+%ajouter qqch ici
+\code{
+1\ ::\ List(2, 3) \==$>$ List(2, 3)::.(1)\\
+\>=$>$ List(1, 2, 3)
+}
+This feature match if the last character of the method name is \textit{:}\ .
+\item Method is declared into another method :\label{fInner}\\
+	Scala language permit declaration of functions inside function. It's a good way to declare subroutine that should not be used outside of this function.\\
+This feature match if the method body contains a method declaration.
+\item Method body contains inner method definition :\\
+	This feature is the opposite of feature~\ref{fInner} and match if the method body contains a method declaration.
+\item Method is overriding another method : \\
+	This feature match if this method override another method.
+\item Method is abstract :\\
+	This feature match if the method body is empty.
+\item Method is public :\\
+	This feature match if this method is public. Note that inner function are always public but can't be accessed from outside.
+\item Method is static :\\
+	This feature match if this method is static. 
+\item Method name finish with "s" :\label{fs}\\
+	The last character of the method name is \textit{s}.
+\item Method name finish with "ss" : \label{fss} \\
+	This two lasts characters of the method name are both \textit{s}.
 
 \end{enumerate}
 
@@ -135,7 +174,12 @@ With the output of the Scala-names plug-in, I filled the \textit{k}-means algori
 \section {Conclusion} 
 
 \section {Future and Related Work}
-Add new features, look at object, trait and class. Parameters and variables. 
+%Add new features, look at object, trait and class. Parameters and variables. 
+\subsection{Adding New Features}
+The Scala compiler can infer type. So programmers don't need to always specify the return type of a method. In some case the type could be a good indication to the reader to understand the code. But in other case like the method \textit{toString()} we don't really need to see the type to know its type. Adding a feature returning if the type is declared or inferred, may obtain information about code quality.
+\subsection{Compose With Others Analysis}
+Method name are not the only "object" that the programmer name. He also name variables, class, parameters and types. An analysis of these "objects" can also find out to be interesting. By example, the feature~\ref{fss} give nothing with method name but could highlight something on variables. Cross analysis on all objects can also demonstrate some results.
+
 
 \newpage
 
