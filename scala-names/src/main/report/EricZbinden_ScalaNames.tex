@@ -1,0 +1,145 @@
+	
+\documentclass[12pt]{article}
+\usepackage{geometry} % see geometry.pdf on how to lay out the page. There's lots.
+\geometry{a4paper} % or letter or a5paper or ... etc
+% \geometry{landscape} % rotated page geometry
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage[ruled,noend]{algorithm2e}
+\usepackage[noend]{algorithmic}
+
+\newcommand{\code}[1]{{\fontfamily{phv}\selectfont \begin{tabbing} #1 \end{tabbing}}}
+
+\title{Natural Language Programming Analysis in Scala}
+\author{\\ \'Eric Zbinden \\ \texttt{eric.zbinden@epfl.ch} \\ \\ Supervisors: \\Philippe Sutter(\texttt{philippe.sutter@epfl.ch})\\ Philipp Haller(\texttt{philipp.haller@epfl.ch})\\Prof. Viktor Kuncak(\texttt{viktor.kuncak@epfl.ch}) \\ \\ EPFL\\ Laboratory for Automated Reasoning and Analysis (LARA) \\ \url{http://lara.epfl.ch/}\\ Programming Methods Laboratory (LAMP) \\ \url{http://lamp.epfl.ch/} }
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+...\\
+For Java this was done by  
+
+\section {Project Overview}
+The main idea of this project is to apply an analysis similar to H{\o}st and {\O}stvold~\cite{DebugMN} but to Scala. Scala contains possibilities that JAVA don't contains; functional programming, local import. So I tried to focus on theses particularities as much as possible.
+
+\section {Implementation}
+The first thing is to retrieve information about a code. The best way is to create a plug-in for the Scala compiler. 
+
+\subsection{Compiler plug-in}
+My plug-in, named Scala-names, is inserted into the compiler phases right after phase 7:~\textit{refchecks}. It use the abstract syntax tree produced in previous phases to extract all objects named by the programmer. It could be variables names, objects names, methods names, parameters names or types names.\\
+
+By lack of time, the analysis is run only on method names. But the plug-in could easily be improved to also analyze other objects.
+The plug-in then check for every method definition found if that method have a given list of features. See~\ref{fs} for more details on features. Then the plug-in output for every method a list of "1" or "0" depending on this method satisfy or not a feature and the method name with source and position.
+
+\subsection{Features}
+\label{fs}
+A feature is a boolean property that a method may satisfy or not. 
+
+\begin{enumerate}
+\item Return type is a collection :
+\item Return type is a subclass of Object : 
+\item Return type is Unit :
+\item Return type is boolean : 
+\item Return type is an Integer :
+\item Return type is a String : 
+\item Method take no parameter :
+\item Method is declared without parenthesis :
+\item Method body contains IF statement :\\
+	The method body contain an IF branch. Note that the Scala compiler translate WHILE block and DO-WHILE block with a IF branch. These two case should not match this feature as the programmer did not write any IF branch. IF guard statement in pattern matching are not taken in account as IF branch. However an IF branch inside a pattern matching right hand side will match.\\
+IF branch matching inside pattern matching right hand side:
+\code{
+ls \=match \{\\
+\>case Nil =$>$\ false\\
+\>case x\ ::\ xs =$>$\ if(x==0) true else false\\
+\}
+}
+IF guard in pattern matching
+\code{
+ls \=match \{\\
+\>case Nil =$>$\ false\\
+\>case x\ ::\ xs if(x==0) =$>$\ true\\
+\>case x\ ::\ xs =$>$ false\\
+\}
+}
+\item Method body contains WHILE statement :\\
+	The method body contains a WHILE statement. DO-WHILE statement are also considered as WHILE statement.
+\item Method body contains TRY-CATCH statement :\\
+	The method body contains a TRY-CATCH block. If a method body contains only the TRY block, it will also match.
+\item Method body contains pattern matching : \\
+	The method body contains pattern matching. If match if the method body contains a MATCH statement.
+\item Method body contains explicit THROW statement :\\
+	The method body contains a THROW statement. It match only if it's explicitly declared. A NumberFormatException raised by a wrong string applied to \textit{.toInt} will not match.
+\item Method is currified : 
+\item Method is self-recursive : \\
+	This method call it-self in it's body. The feature don't match for other method even with surcharged identifiers.
+\item Method name is a verb : 
+\item Method name is a noun :
+\item Method name is a camel phrase :
+\item Method name contains an acronym :
+\item Method name match an abstract phrase construction : 
+\item Method name contains "is" pattern :\label{fContainsIs}
+\item Method name contains "get" pattern :\label{fContainsGet}\\
+	Straight forward, it's implemented the same way as feature~\ref{fContainsIs}.
+\item Method name contains "set" pattern :\label{fContainsSet}\\
+	Same as features~\ref{fContainsIs} and~\ref{fContainsGet}.
+\item Method name contains "contains" pattern :\\
+	Same as features~\ref{fContainsIs},~\ref{fContainsGet} and~\ref{fContainsSet}.
+\item Method name is a valid JAVA name :\\
+	A valid JAVA method name is a series of JAVA letters or JAVA digit that begin with a JAVA letter~\cite{jls_ident} and that is not a JAVA keyword~\cite{jls_keyword}. %pas tout à fait...
+% Keyword: one of
+%	abstract    default    if            private      this
+%	boolean     do         implements    protected    throw
+%	break       double     import        public       throws
+%	byte        else       instanceof    return       transient
+%	case        extends    int           short        try
+%	catch       final      interface     static       void
+%	char        finally    long          strictfp     volatile
+%	class       float      native        super        while
+%	const       for        new           switch
+%	continue    goto       package       synchronized
+%	null	    true	false
+\item Method name is an operator :\\
+	An operator is defined as a following of characters that are neither a letter neither a digit.
+\item Method return type is completely contained into the method name :
+\item Method return type is partially contained into the method name :\label{fReturnTypeComplete}\\
+	This feature is a variant of feature~\ref{fReturnTypeComplete}. For composed type name, as programmer are often lazy, they often write it partially. One would by example write only "Tree" instead of "AbstractSyntaxTree". This feature will match in such case as previous feature will not. It will also match if the type is completely contained, like~\ref{fReturnTypeComplete}.
+\item Method is right associative :
+\item Method is declared into another method :
+\item Method body contains inner method definition :
+\item Method is overriding another method :
+\item Method is abstract :
+\item Method is public :
+\item Method is static :
+\item Method name finish with "s" :
+\item Method name finish with "ss" : 
+
+\end{enumerate}
+
+\subsection{Clustering}
+With the output of the Scala-names plug-in, I filled the \textit{k}-means algorithm~\cite{kMeans} to find out something interesting. The implementation of the algorithm follow~\cite{kMeans} description with a random partition.
+
+\section {Experimental Results}
+
+\subsection {Features}
+
+\subsection {Correlation}
+
+\subsection {Others} 
+
+\section {Conclusion} 
+
+\section {Future and Related Work}
+Add new features, look at object, trait and class. Parameters and variables. 
+
+\newpage
+
+\bibliographystyle{plain}
+\bibliography{EricZbinden_ScalaNames}
+
+\end{document}
