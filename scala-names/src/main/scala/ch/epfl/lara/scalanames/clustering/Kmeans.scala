@@ -13,12 +13,12 @@ object Kmeans {
   /** ------------- ARGUMENTS ------------- **/
   val libDataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\libOutput.txt"
   val testDataPath = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\testOutput.txt"
-  val output = "C:\\Documents and Settings\\Coubii\\workspace\\ScalaNames\\test\\KmeanOutput.txt"
+  val output = "src/main/resources/KmeanOutput.txt"
   var dataPathToUse = testDataPath				//Where to find the good file
   var printy = false 							//If true, print out in output file
   var cluster = 10 								//Number of wanted clusters
   var endAfterXStep = 100						//Exit the algorithm after X step
-  var threshold:Double = 0.225					//Threshold of OptBoolCluster
+  var threshold:Double = 0.15					//Threshold of OptBoolCluster
   //var emptyCluster : Boolean = false			//Use of the modified K-means for avoiding empty cluster
   var loop : Boolean = false					//Empty cluster do not make algorithm looping
   var analysis = false							//If the output should be for the analysis plugin
@@ -240,7 +240,7 @@ object Kmeans {
     }
     def printMethod(m: (String,Int)):Unit = {
       out.write("<m>\n")
-      out.write(m._2+" "+m._1+"\n")
+      out.write(m._2+" "+m._1+" "+data(m._1).mkString(" ")+"\n")
     }
     def printFeature(f: (Int,String)):Unit = {
       out.write("<f>\n")

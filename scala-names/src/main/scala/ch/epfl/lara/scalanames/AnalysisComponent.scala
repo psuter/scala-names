@@ -7,8 +7,6 @@ import ch.epfl.lara.scalanames.features._
 import java.io.BufferedWriter
 import java.io.FileWriter
 import edu.smu.tspell.wordnet.WordNetDatabase
-import java.io.BufferedReader
-import java.io.FileReader
 import scala.collection.mutable.HashMap
 
 abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends PluginComponent with Definitions {
@@ -29,8 +27,8 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
     val testOutput = ".\\testOutput.txt"
     val libOutput = ".\\libOutput.txt"
     val analysisOutput = ".\\analysisOutput.txt"  
-    lazy val out = new BufferedWriter(new FileWriter(if(analysis)analysisOutput else libOutput, true))
-    lazy val analysedData = new HashMap[String, List[Int]]
+    lazy val out = new BufferedWriter(new FileWriter(if(analysis)analysisOutput else libOutput, !analysis))
+    val analysedData = new HashMap[String, List[Int]]
 
     val wordNetPath : String = "C:\\Program Files\\WordNet\\2.1\\dict" 
     System.setProperty("wordnet.database.dir", wordNetPath)
@@ -140,27 +138,46 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
 
       if(analysis){
         import ch.epfl.lara.scalanames.clustering._
-        try{
-          val libClust = LibCluster
-          //libClust.apply()
-        
-          if (libClust.checkFeatures(featureList.map(f => (f.id,f.name)))){
-            for(md <- analysedData) { 
-
-                val clustDist = libClust.nearestClusterWithDistance(md._2)
-                out.write(md._2 +"\t"+ md._1)
-                out.write("Nearest cluster: "+clustDist._1 +" at distance "+clustDist._2+"\n")
-                out.write("Similar methods:\n\t")
-                val three = libClust.take3AtRandom(clustDist._1.id)
-                out.write(three._1);out.write(three._2);out.write(three._3)
-            }  
-          } else println("please rebuild the feature list before analysis.")    
-        } catch {
-          case e => println("I/O error: "+e)
+ 
+              
+        def hazF(mfs: List[MethodFeature], signs: List[Int], cs: List[Option[Boolean]]):String = (signs,cs) match {
+        	case (Nil,Nil)=> ""
+        	case (0 :: ys, Some(true) :: zs) => "Haz NOT BUT should     "+mfs.head.name+"\n" +hazF(mfs.tail,ys,zs)
+        	case (1 :: ys, Some(true) :: zs) => "Haz                    "+mfs.head.name+"\n" +hazF(mfs.tail,ys,zs)
+        	case (0 :: ys, Some(false) :: zs) =>"Haz NOT                "+mfs.head.name+"\n" +hazF(mfs.tail,ys,zs)
+        	case (1 :: ys, Some(false) :: zs) =>"Haz     BUT should NOT "+mfs.head.name+"\n" +hazF(mfs.tail,ys,zs)
+        	case (0 :: ys, None :: zs) =>       "Haz NOT      ...       "+mfs.head.name+"\n" +hazF(mfs.tail,ys,zs)
+        	case (1 :: ys, None :: zs) =>       "Haz          ...       "+mfs.head.name+"\n" +hazF(mfs.tail,ys,zs)
+        	case x => throw new Exception("Oups... I did it again!: MatchCaseException: "+x)
         }
+        
+        val libClust = LibCluster
+
+        if (libClust.checkFeatures(featureList.map(f => (f.id,f.name)))){
+            var dist : Double = 0
+            for(md <- analysedData) { 
+                val clustDist = libClust.nearestClusterWithDistance(md._2)
+                out.write("--- Method: "+md._1+" ---\n")
+                out.write("Sign: "+md._2.mkString(" ")+"\n")
+                out.write("Nearest cluster: "+clustDist._1.id +" at distance "+clustDist._2+"\n")
+                out.write("cPos: "+clustDist._1.posToString()+"\n")
+                out.write("Similar methods:\n")
+                val three = libClust.take3AtRandom(clustDist._1.id)
+                out.write("\t"+three._1._1+"\nsign: "+three._1._2.mkString(" ")+"\n")
+                out.write("\t"+three._2._1+"\nsign: "+three._2._2.mkString(" ")+"\n")
+                out.write("\t"+three._3._1+"\nsign: "+three._3._2.mkString(" ")+"\n")
+                out.write(hazF(featureList,md._2,clustDist._1.getPos)+"\n")
+                dist += clustDist._2
+            }
+            out.write("\nAverage distance: "+(dist/analysedData.size+"\n"))
+            out.flush()
+          } else println("please rebuild the feature list before analysis.")    
+         println("Analysis outputed on file: "+analysisOutput) 
       } 
       
    }
+
+
 
   }
   

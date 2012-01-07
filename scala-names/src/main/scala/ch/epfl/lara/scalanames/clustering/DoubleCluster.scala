@@ -9,7 +9,7 @@ class DoubleCluster(val id:Int) extends Cluster[Double] {
     override def toString = "Double cluster "+id+
 							(if(isEmpty) " is empty"
 							else " contains "+size+" element(s) and is at position ["+pos.map(_.toString()).mkString(",")+"]")
-    
+							    
   def copy(): DoubleCluster = {
     val cp = new DoubleCluster(id)
     cp.updatePos(this.pos,size)

@@ -35,6 +35,7 @@ trait IsValidJavaName extends MethodFeature {
     "native" | "super" | "while" | "const" | "for" | "new" |
     "switch" | "continue" | "goto" | "package" | "synchronized" |
     "null" | "true" | "false" => true
+    case _ => false
   }
   
 

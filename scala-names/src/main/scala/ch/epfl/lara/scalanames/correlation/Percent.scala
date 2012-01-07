@@ -50,12 +50,7 @@ object Percent {
     data.foreach(m => f_count(m._2))
     val size = data.size
     count = count.map(x => x/size)
-    
-    features.foreach(f => {
-      println(count(f._1-1)+" "+f._2)
-    })
-    
-    
+    features.toList.sort((f1,f2)=> count(f1._1-1)>count(f2._1-1)).foreach(f => println(count(f._1-1)+" "+f._2))
   }
   
   def f_count(fs:List[Int]):Unit = {

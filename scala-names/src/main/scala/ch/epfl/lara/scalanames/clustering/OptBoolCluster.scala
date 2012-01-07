@@ -11,9 +11,10 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
 
   override def toString = "Option[Boolean] cluster "+id+ 
     					  (if(isEmpty) " is empty"
-	  					  else " contains "+size+" element(s) and is at pos ["+
-	  					  	   pos.map(x => x match{ case Some(true)=>1;case Some(false)=>0;case None=>"?"}).mkString(",")+"]")
+	  					  else " contains "+size+" element(s) and is at pos ["+posToString+"]")
    
+  def posToString():String = getPos.map(x => x match{case Some(true)=>1;case Some(false)=>0;case None=>"?"}).mkString(" ") 
+
 
   def copy(): OptBoolCluster = { 
      val cp = new OptBoolCluster(id, treshold)
