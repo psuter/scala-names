@@ -94,7 +94,10 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
           new NameFinishWith{ val pattern = "s"
             						   val id = 36 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameFinishWith{ val pattern = "ss"
-            						   val id = 37 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+            						   val id = 37 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new ContainsLazyVal{	   val id = 38 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+            						   
+         // new ContainsLocalImport{	   val id = 38 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
          // new InferedType{		 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this } NOT WORKING
          //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
@@ -160,7 +163,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
                 out.write("--- Method: "+md._1+" ---\n")
                 out.write("Sign: "+md._2.mkString(" ")+"\n")
                 out.write("Nearest cluster: "+clustDist._1.id +" at distance "+clustDist._2+"\n")
-                out.write("cPos: "+clustDist._1.posToString()+"\n")
+                //out.write("cPos: "+clustDist._1.posToString()+"\n")
                 out.write("Similar methods:\n")
                 val three = libClust.take3AtRandom(clustDist._1.id)
                 out.write("\t"+three._1._1+"\nsign: "+three._1._2.mkString(" ")+"\n")
@@ -219,7 +222,7 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
             d.name.toString().equals("<init>") ||
             d.name.debugString().equals("$init$")||
             d.name.toString == "readResolve" //this is not synthetical, but it's not a method definition, so don't care
-          )
+          )  
           
           if(d.symbol.caseModule.exists && d.symbol.caseModule.name==d.symbol.name)
             Some(Any(d.name.debugString(), Object, mods.isSynthetic, d.pos))
