@@ -5,10 +5,11 @@
 % \geometry{landscape} % rotated page geometry
 \usepackage{url}
 \usepackage{graphicx}
+\usepackage{multirow}
 \usepackage[ruled,noend]{algorithm2e}
 \usepackage[noend]{algorithmic}
 
-\newcommand{\code}[1]{{\fontfamily{phv}\selectfont \begin{tabbing} #1 \end{tabbing}}}
+\newcommand{\code}[1]{{\fontfamily{phv}\selectfont \small{\begin{tabbing} #1 \end{tabbing}}}}
 
 \title{Natural Language Programming Analysis in Scala}
 \author{\\ \'Eric Zbinden \\ \texttt{eric.zbinden@epfl.ch} \\ \\ Supervisors: \\Philippe Sutter(\texttt{philippe.sutter@epfl.ch})\\ Philipp Haller(\texttt{philipp.haller@epfl.ch})\\Prof. Viktor Kuncak(\texttt{viktor.kuncak@epfl.ch}) \\ \\ EPFL\\ Laboratory for Automated Reasoning and Analysis (LARA) \\ \url{http://lara.epfl.ch/}\\ Programming Methods Laboratory (LAMP) \\ \url{http://lamp.epfl.ch/} }
@@ -95,9 +96,9 @@ ls \=match \{\\
 \item Method name is a camel case phrase : \label{fCamel}\\
 	An unique word is not always meaningful to name a method. As C convention use underscore-separated words like "end\_of\_file", Java and Scala convention use camel case. Camel case is a practice of writing several words composed without white space but with the first letter of each word in uppercase. The first letter of the first word may or not be in uppercase.\\
 This feature split the method name by the non-letter characters and by uppercase letters. Then it reconstruct potential acronym like in~\ref{fAcronym}. Then the feature will match if the split is composed at least of two words and if the second and followings words begin with an uppercase letter. Example:
-\code{\small aCamel++Case\_PhraseWithXML \= =$>$\small List(a, Camel, Case, Phrase, With, X, M, L)\\
-\>\small=$>$ List(a, Camel, Case, Phrase, With, XML)\\
-\>\small=$>$ true
+\code{aCamel++Case\_PhraseWithXML \= =$>$ List(a, Camel, Case, Phrase, With, X, M, L)\\
+\>=$>$ List(a, Camel, Case, Phrase, With, XML)\\
+\>=$>$ true
 }
 Note that \textit{an\_Underscore\_Separated\_Phrase} will match this feature as all words, except the first, begin with an uppercase letter.
 \item Method name contains an acronym :\label{fAcronym}\\
@@ -115,18 +116,7 @@ This feature will match if the method name contains at least one word that is an
 	Same as features~\ref{fContainsIs},~\ref{fContainsGet} and~\ref{fContainsSet}.
 \item Method name is a valid JAVA name :\\
 	A valid JAVA method name is a series of JAVA letters or JAVA digit that begin with a JAVA letter~\cite{jls_ident} and that is not a JAVA keyword~\cite{jls_keyword}. %pas tout à fait...
-% Keyword: one of
-%	abstract    default    if            private      this
-%	boolean     do         implements    protected    throw
-%	break       double     import        public       throws
-%	byte        else       instanceof    return       transient
-%	case        extends    int           short        try
-%	catch       final      interface     static       void
-%	char        finally    long          strictfp     volatile
-%	class       float      native        super        while
-%	const       for        new           switch
-%	continue    goto       package       synchronized
-%	null	    true	false
+
 \item Method name is an operator :\\
 	An operator is defined as a following of characters that are neither a letter neither a digit.
 \item Method return type is completely contained into the method name :
@@ -161,10 +151,50 @@ This feature match if the method body contains a method declaration.
 \end{enumerate}
 
 \subsection{Clustering}
-With the output of the Scala-names plug-in, I filled the \textit{k}-means algorithm~\cite{kMeans} to find out something interesting. The implementation of the algorithm follow~\cite{kMeans} description with a random partition.
+\label{cluster}
+With the output of the Scala-names plug-in, I filled the \textit{k}-means algorithm~\cite{kMeans} hoping the result will be interesting. The implementation of the algorithm follow~\cite{kMeans} description with a random partition. K-means is sensible to the initial partitioning and its output may be different. The output may also contains empty clusters. As k-means reach a stable point fast, It's generally recommended to run several time the algorithm to be sure to obtain a fine result.\\
+First question, how many cluster should we use ? A too small number of clusters will aggregate different groups of methods and a too high number of clusters will separate methods in a same group. I think the answer to this question really depend on the data set and what we want to find. See~\ref{cluster:exp} for answer based on this project.\\
+At the end of the algorithm, we obtain clustered data. Fine, but the center of cluster is a raw position, as it's the average position of all its members. To obtain a position more readable an more meaningful, I discrete the position of the clusters depending on a threshold to obtain a position only composed of: $0$, $1$ or $?$. If for a given dimension the value is lower than the threshold, the value is lowered to $0$. Respectively if the value is higher than $1-threshold$, the value is raised to $1$. And if the value is higher than the threshold and lower than $1-threshold$ the value is set to undefined: $?$. See figure~\ref{discrete} for an example on two dimensions.\\
+Then I do one more step of k-means to check the effect of the discretization to the clusters. Here another question is raised: what's a relevant threshold ? It should be small enough to be as most correct but big enough to have a minimum of undefined values. See the respond in section~\ref{threshold}.
+\begin{figure}[tbc]
+\centering
+\includegraphics[width=5cm]{discrete.png}
+\caption{Discretization of a cluster of two dimensions}
+\label{discrete}
+\end{figure}
 
 \section {Experimental Results}
 
+\subsection {Clustering}
+\label{cluster:exp}
+To answers the two questions of section~\ref{cluster}, I ran 100 times the k-means algorithm on the output of the Scala-names plug-in of the Scala library with different numbers of clusters. I took five mean metrics with confidence interval of 95\%: the number of empty clusters, the number of undefined values in all clusters, the average distance of methods to their respective cluster, the cluster average size and the error due to discretization modeled by the number of methods moving after a one-step check. 
+\subsubsection{Number of clusters}
+For this series of experiments, the threshold was fixed at 0.15 . 
+\\ \\
+\begin{center}
+\begin{tabular}{c c}
+\includegraphics[width=5cm]{emptyCluster.png}
+\includegraphics[width=5cm]{questionMark.png}
+\end{tabular}\\
+\begin{tabular}{c c c}
+\includegraphics[width=5cm]{averageDist.png}
+\includegraphics[width=5cm]{averageClusterSize.png}
+\includegraphics[width=5cm]{switched.png} %REFAIRE le graphic 5 pour l'ortho
+\end{tabular}
+\end{center}
+
+\begin{enumerate}
+\item As the number of clusters increase, the number of empty clusters increase too. With 30 clusters we reach 6 empty clusters. It represent a percentage of empty cluster of 20\%, which is pretty high. As The computational time of the algorithm also increase with a higher number of cluster, it suggest that a lower number of clusters is better.
+\item To be independent of the first metric, the second it is calculated only with non-empty cluster. The number of undefined values in the clusters also increase with the cluster number on a basis of $\frac{2}{3}$. This is bad as we can't deduce anything from them.
+\item The third metric seams not really relevant. If the distance of a method to it's own cluster decrease, that's good, as the cluster is a better representation of its members. But as the result for ten cluster is already below a distance of one, a so small difference have no impact.
+\item As the fourth metric show the average cluster size, we can pretend that a cluster with a smaller number of members will be more accurate. My experience say the same as during the development of the project I get as a first result of k-means, with ten clusters, a pretty strange result. As all the ten clusters have a negative result for the pattern matching feature, I looked into some files at random, saw that were true for those files and stated: "\textit{Yes, that's true, the Scala library do not contains any pattern matching.}" Off course, that's wrong. But pattern matching is found only in 8\% of all methods, making this feature less representative than feature with a higher probability. On the other hand, as pointed by the second metric, the number of undefined values increase which try to say that to obtain a smaller granularity we need to cut some concentrated points.
+\item The last metric seams unstable and really depend on the initial partitioning. But we need to consider the library size: 11'752 method declarations. The variation of the mean is of 1\% and the number of method that move to another cluster stay on a percentage of 10\% of all methods. I noted that this percentage of moving methods was lower with a lower cluster dimension. We can conclude that the number of clusters don't impact on the error due to discretization.
+\end{enumerate}
+On the basis of theses results, I decided to take a number of cluster of fifteen to shrink the cluster size at maximum without to suffer of bad effects of undefined values.
+\subsubsection{Threshold}
+\label{threshold}
+Here again, I ran hundred time the same experience, but this time a fixed number of cluster of fifteen on different threshold.
+%Add experiments result and comments about them
 \subsection {Features}
 
 \subsection {Correlation}
