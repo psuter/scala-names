@@ -33,14 +33,16 @@ The main idea of this project is to apply an analysis similar to H{\o}st and {\O
 The first thing is to retrieve information about a code. The best way is to create a plug-in for the Scala compiler. 
 
 \subsection{Compiler plug-in}
-My plug-in, named Scala-names, is inserted into the compiler phases right after phase 7:~\textit{refchecks}. It use the abstract syntax tree produced in previous phases to extract all objects named by the programmer. It could be variables names, objects names, methods names, parameters names or types names.\\
+My plug-in, named Scala-names, is inserted into the compiler phases right after phase 7:~\textit{refchecks}. It use the abstract syntax tree produced in previous phases to extract all objects named by the programmer. It could be variables names, objects names, methods names, parameters names or types names. It perform an analysis and then kill the resting compiler phases, as we don't need them.\\
 
 By lack of time, the analysis is run only on method names. But the plug-in could easily be improved to also analyze other objects.
-The plug-in then check for every method definition found if that method have a given list of features. See~\ref{fs} for more details on features. Then the plug-in output for every method a list of "1" or "0" depending on this method satisfy or not a feature and the method name with source and position.
-
+The plug-in check for every method definitions found in the given files and check if theses methods match features. See~\ref{features} for more details on features. The plug-in output for every methods found a list of "1" or "0" depending on this method satisfy or not a feature and the method name with source and position. See here an example of the output of the plug-in:
+\code{1 1 0 0 0 0 1 1 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 \\empty@source-scala$\backslash$collection$\backslash$Map.scala,line-30,offset=1212}
+You can see in the first line if the method, here \textit{empty} of the trait \textit{Map} defined in the \textit{scala$\backslash$collection$\backslash$Map.scala} file at line 30, match the features implemented inside the plug-in.
 \subsection{Features}
-\label{fs}
-A feature is a boolean property that a method may satisfy or not. 
+\label{features}
+A feature is a boolean property that a method may satisfy or not.\\
+I tried to implement all the features that H{\o}st and {\O}stvold~\cite{DebugMN} used. I added features proper to the Scala language. Then I search into the \textit{Symbol} class given by the Scala compiler and implemented what I thought to be interesting and possible. Here is a list of features that I implemented:
 
 \begin{enumerate}
 \item Return type is a collection :\\
@@ -49,7 +51,7 @@ A feature is a boolean property that a method may satisfy or not.
 	This feature match any return type that extends the AnyRef class~\cite{anyRef}.
 \item Return type is Unit :\\
 	This feature match if the return type is Unit.
-\item Return type is boolean : \label{fBool}\\
+\item Return type is Boolean : \label{fBool}\\
 	Straight forward, this feature match boolean return type.
 \item Return type is an Integer :\label{fInt}\\
 	Same as feature~\ref{fBool} with Integer return type.
@@ -58,18 +60,16 @@ A feature is a boolean property that a method may satisfy or not.
 \item Method take no parameter :\label{fNoParam}\\
 	This method is a variant of feature~\ref{fNoParenthesis} .
 \item Method is declared without parenthesis :\label{fNoParenthesis}\\
-	%This feature is a variant of feature~\ref{fNoParam}.
 In Scala when a programmer declare a function that take no argument, it's possible to write with or without parenthesis. With parenthesis indicate that this function have side effect; modifying data, printing out on std. In the AbstractSyntaxTree produced by the compiler, the parameters of a method are returned as a List of List. If the first list is empty, then it indicate that this method is declared without parameters and no parenthesis and should therefore have no side-effect. If the first list is of size one and contains an empty list, we have here a method declared without parameters but with parenthesis and thus with possible side-effect. And if the first list have a bigger size than one, it indicate we are dealing with a currified function.
 \item Method body contains IF statement :\\
-	The method body contain an IF branch. Note that the Scala compiler translate WHILE block and DO-WHILE block with a IF branch. These two case should not match this feature as the programmer did not write any IF branch. IF guard statement in pattern matching are not taken in account as IF branch. However an IF branch inside a pattern matching right hand side will match.\\
-IF branch matching inside pattern matching right hand side:
+	The method body contain an IF branch. Note that the Scala compiler translate WHILE block and DO-WHILE block with a IF branch. These two case should not match this feature as the programmer did not write any IF branch. IF guard statement in pattern matching are not taken in account as IF branch. However an IF branch inside a pattern matching right hand side will match. See here example of IF branch matching inside pattern matching right hand side:
 \code{
 ls \=match \{\\
 \>case Nil =$>$\ false\\
 \>case x\ ::\ xs =$>$\ if(x==0) true else false\\
 \}
 }
-IF guard in pattern matching
+And IF guard inside pattern matching:
 \code{
 ls \=match \{\\
 \>case Nil =$>$\ false\\
@@ -119,8 +119,9 @@ This feature will match if the method name contains at least one word that is an
 
 \item Method name is an operator :\\
 	An operator is defined as a following of characters that are neither a letter neither a digit.
-\item Method return type is completely contained into the method name :
-\item Method return type is partially contained into the method name :\label{fReturnTypeComplete}\\
+\item Method return type is completely contained into the method name :\label{fReturnTypeComplete}\\
+	This feature match if the return type is contained into the method name. For composed return type name, the method name should match for every word of the return type. The return type name and the method name are split the same manner as in feature~\ref{fCamel}. 
+\item Method return type is partially contained into the method name :\\
 	This feature is a variant of feature~\ref{fReturnTypeComplete}. For composed type name, as programmer are often lazy, they often write it partially. One would by example write only "Tree" instead of "AbstractSyntaxTree". This feature will match in such case as previous feature will not. It will also match if the type is completely contained, like~\ref{fReturnTypeComplete}.
 \item Method is right associative :\\
 	Scala language is left associative. But a method name that finish with the \textit{:} character is right associative.
@@ -149,13 +150,27 @@ This feature match if the method body contains a method declaration.
 	This two lasts characters of the method name are both \textit{s}.
 
 \end{enumerate}
-
+%See now an example of the plug-in applied on \textit{scala$\backslash$collection$\backslash$Map.scala} file.
+%\code{
+%1 1 0\=\ 0 0 0 1 1 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 \\\>empty@source-scala$\backslash$collection$\backslash$Map.scala,line-30,offset=1212\\
+%0 1 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 1 0 1 1 0 0 0 0 0 1 1 0 0 0 1 \\\>canBuildFrom@source-scala$\backslash$collection$\backslash$Map.scala,line-46,offset=1551\\
+%0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 0 1 0 0 1 0 0 0 0 0 0 0 0 1 0 0 0 0 0 \\\>get@source-scala$\backslash$collection$\backslash$Map.scala,line-53,offset=1917\\
+%0 1 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 1 1 0 0 0 0 0 1 0 0 0 0 0 \\\>iterator@source-scala$\backslash$collection$\backslash$Map.scala,line-54,offset=2020\\
+%0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0 1 0 0 0 0 0 \\\>default@source-scala$\backslash$collection$\backslash$Map.scala,line-55,offset=2087\\
+%1 1 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 0 0 0 0 1 0 1 0 0 0 0 0 \\\>seq@source-scala$\backslash$collection$\backslash$Map.scala,line-32,offset=1259\\
+%1 1 0 0 0 0 1 1 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 0 0 0 0 0 0 0 1 1 0 0 0 0 \\\>empty@source-scala$\backslash$collection$\backslash$Map.scala,line-43,offset=1448\\
+%0 0 0 0 1 0 1 1 0 0 0 0 0 0 0 1 1 0 0 1 0 0 0 0 1 0 0 0 0 0 0 1 0 1 0 0 0 0 0 \\\>size@source-scala$\backslash$collection$\backslash$Map.scala,line-52,offset=1872}
+%Source code of \textit{empty@source-scala$\backslash$collection$\backslash$Map.scala,line-30,offset=1212}:\code{
+%  def empty: Map[A, B] = Map.empty}
+%\begin{itemize}1: the return type is a Map, and yes, it's a collection.\\
+%Second feature is a 1: yes, Map is a subclass of AnyRef then yes. Third feature is a 0: Map is not Unit. Fourth feature is a 0: Map is not boolean.
+%\end{itemize}
 \subsection{Clustering}
 \label{cluster}
 With the output of the Scala-names plug-in, I filled the \textit{k}-means algorithm~\cite{kMeans} hoping the result will be interesting. The implementation of the algorithm follow~\cite{kMeans} description with a random partition. K-means is sensible to the initial partitioning and its output may be different. The output may also contains empty clusters. As k-means reach a stable point fast, It's generally recommended to run several time the algorithm to be sure to obtain a fine result.\\
 First question, how many cluster should we use ? A too small number of clusters will aggregate different groups of methods and a too high number of clusters will separate methods in a same group. I think the answer to this question really depend on the data set and what we want to find. See~\ref{cluster:exp} for answer based on this project.\\
-At the end of the algorithm, we obtain clustered data. Fine, but the center of cluster is a raw position, as it's the average position of all its members. To obtain a position more readable an more meaningful, I discrete the position of the clusters depending on a threshold to obtain a position only composed of: $0$, $1$ or $?$. If for a given dimension the value is lower than the threshold, the value is lowered to $0$. Respectively if the value is higher than $1-threshold$, the value is raised to $1$. And if the value is higher than the threshold and lower than $1-threshold$ the value is set to undefined: $?$. See figure~\ref{discrete} for an example on two dimensions.\\
-Then I do one more step of k-means to check the effect of the discretization to the clusters. Here another question is raised: what's a relevant threshold ? It should be small enough to be as most correct but big enough to have a minimum of undefined values. See the respond in section~\ref{threshold}.
+At the end of the algorithm, we obtain clustered data. Fine, but the center of cluster is a raw position, as it's the average position of all its members. To obtain a position more readable an more meaningful, I discrete the position of the clusters depending on a threshold to obtain a position only composed of: $0$, $1$ or $?$. If for a given dimension the value is lower than the threshold, the value is lowered to $0$. Respectively if the value is higher than $1-threshold$, the value is raised to $1$. And if the value is higher than the threshold and lower than $1-threshold$, the value is set to undefined: $?$. See figure~\ref{discrete} for an example on two dimensions.\\
+Then I do one more step of k-means to check the effect of the discretization to the clusters. Here, another question is raised: what's a relevant threshold ? It should be small enough to minimize the amount of methods that move to another cluster during the one-step verification, but big enough to have a minimum of undefined values. See the respond in section~\ref{threshold}.
 \begin{figure}[tbc]
 \centering
 \includegraphics[width=5cm]{discrete.png}
@@ -187,17 +202,30 @@ For this series of experiments, the threshold was fixed at 0.15 .
 \item As the number of clusters increase, the number of empty clusters increase too. With 30 clusters we reach 6 empty clusters. It represent a percentage of empty cluster of 20\%, which is pretty high. As The computational time of the algorithm also increase with a higher number of cluster, it suggest that a lower number of clusters is better.
 \item To be independent of the first metric, the second it is calculated only with non-empty cluster. The number of undefined values in the clusters also increase with the cluster number on a basis of $\frac{2}{3}$. This is bad as we can't deduce anything from them.
 \item The third metric seams not really relevant. If the distance of a method to it's own cluster decrease, that's good, as the cluster is a better representation of its members. But as the result for ten cluster is already below a distance of one, a so small difference have no impact.
-\item As the fourth metric show the average cluster size, we can pretend that a cluster with a smaller number of members will be more accurate. My experience say the same as during the development of the project I get as a first result of k-means, with ten clusters, a pretty strange result. As all the ten clusters have a negative result for the pattern matching feature, I looked into some files at random, saw that were true for those files and stated: "\textit{Yes, that's true, the Scala library do not contains any pattern matching.}" Off course, that's wrong. But pattern matching is found only in 8\% of all methods, making this feature less representative than feature with a higher probability. On the other hand, as pointed by the second metric, the number of undefined values increase which try to say that to obtain a smaller granularity we need to cut some concentrated points.
+\item As the fourth metric show the average cluster size, we can pretend that a cluster with a smaller number of members will be more accurate. My experience say the same as during the development of the project I get as a first result of k-means, with ten clusters, a pretty strange result. As all the ten clusters have a negative result for the pattern matching feature, I looked into some files at random, saw that were true for those files and stated: "\textit{Yes, that's true, the Scala library do not contains any pattern matching.}" Off course, that's wrong. But pattern matching is found only in 8\% of all methods, making this feature less representative than feature with a higher probability. A small number of clusters will hide results on some features. On the other hand, as pointed by the second metric, the number of undefined values increase which try to say that to obtain a smaller granularity we need to cut some concentrated points.
 \item The last metric seams unstable and really depend on the initial partitioning. But we need to consider the library size: 11'752 method declarations. The variation of the mean is of 1\% and the number of method that move to another cluster stay on a percentage of 10\% of all methods. I noted that this percentage of moving methods was lower with a lower cluster dimension. We can conclude that the number of clusters don't impact on the error due to discretization.
 \end{enumerate}
-On the basis of theses results, I decided to take a number of cluster of fifteen to shrink the cluster size at maximum without to suffer of bad effects of undefined values.
+On the basis of theses results, I decided to take a number of clusters of fifteen to shrink the cluster size at maximum without to suffer of bad effects of undefined values.
 \subsubsection{Threshold}
 \label{threshold}
-Here again, I ran hundred time the same experience, but this time a fixed number of cluster of fifteen on different threshold.
+Here again, I ran hundred time the same experience, but this time a fixed number of clusters of fifteen on different threshold.
 %Add experiments result and comments about them
 \subsection {Features}
 
-\subsection {Correlation}
+\subsubsection {Correlation}
+\begin{figure}[tbc]
+\centering
+\includegraphics[width=12cm]{corrCOR.png}
+\caption{Correlation matrix}
+\label{corrCor}
+\end{figure}
+\begin{figure}[tbc]
+\centering
+\includegraphics[width=12cm]{corrJAC.png}
+\caption{Jaccard coefficient matrix }
+\label{corrJac}
+\end{figure}
+%Reprint them !!!!
 
 \subsection {Others} 
 
@@ -206,9 +234,13 @@ Here again, I ran hundred time the same experience, but this time a fixed number
 \section {Future and Related Work}
 %Add new features, look at object, trait and class. Parameters and variables. 
 \subsection{Adding New Features}
-The Scala compiler can infer type. So programmers don't need to always specify the return type of a method. In some case the type could be a good indication to the reader to understand the code. But in other case like the method \textit{toString()} we don't really need to see the type to know its type. Adding a feature returning if the type is declared or inferred, may obtain information about code quality.
+\begin{itemize}
+\item The Scala compiler can infer type. So programmers don't need to always specify the return type of a method. In some case the type could be a good indication to the reader to understand the code. But in other case like the method \textit{toString()} we don't really need to see the type written to know its type. Adding a feature returning if the type is declared or inferred, may obtain information about code quality.
+\end{itemize}
 \subsection{Compose With Others Analysis}
-Method name are not the only "object" that the programmer name. He also name variables, class, parameters and types. An analysis of these "objects" can also find out to be interesting. By example, the feature~\ref{fss} give nothing with method name but could highlight something on variables. Cross analysis on all objects can also demonstrate some results.
+Method name are not the only "object" that the programmer name. He also name variables, class, parameters and types. An analysis of these "objects" can also find out to be interesting. By example, the feature~\ref{fss} give nothing with method name but could highlight something on variables.\\
+Cross analysis on all objects can also demonstrate some results.\\
+%ajouter ce que Jd m'a parlé
 
 
 \newpage

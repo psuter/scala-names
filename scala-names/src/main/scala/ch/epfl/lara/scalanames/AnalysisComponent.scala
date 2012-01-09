@@ -95,12 +95,15 @@ abstract class AnalysisComponent(pluginInstance : ScalaNamesPlugin) extends Plug
             						   val id = 36 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
           new NameFinishWith{ val pattern = "ss"
             						   val id = 37 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
-          new ContainsLazyVal{	   val id = 38 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
-            						   
-         // new ContainsLocalImport{	   val id = 38 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+          new ContainsLazyVal{	 	   val id = 38 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          new IsImplicit{			   val id = 39 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
 
-         // new InferedType{		 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this } NOT WORKING
-         //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
+          //new ContainsAssign{		   val id = 39 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+            						   
+          //new ContainsLocalImport{	   val id = 38 ; val component : AnalysisComponent.this.type = AnalysisComponent.this }
+
+          //new InferedType{		 	   val id = 34 ; val component : AnalysisComponent.this.type = AnalysisComponent.this } NOT WORKING
+          //new IsInfinitiveVerb{        val id = 18 ; val component : AnalysisComponent.this.type = AnalysisComponent.this },
 
       
 
