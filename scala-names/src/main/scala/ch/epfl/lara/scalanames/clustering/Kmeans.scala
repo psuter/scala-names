@@ -16,7 +16,7 @@ object Kmeans {
   val output = "src/main/resources/KmeanOutput.txt"
   var dataPathToUse = testDataPath				//Where to find the good file
   var printy = false 							//If true, print out in output file
-  var cluster = 10 								//Number of wanted clusters
+  var cluster = 15 								//Number of wanted clusters
   var endAfterXStep = 100						//Exit the algorithm after X step
   var threshold:Double = 0.15					//Threshold of OptBoolCluster
   //var emptyCluster : Boolean = false			//Use of the modified K-means for avoiding empty cluster
@@ -35,15 +35,22 @@ object Kmeans {
   
   /** ------------ MISC ------------ **/
   lazy val out = new BufferedWriter(new FileWriter(output, false))
-  val rand = new Random
+  private val rand = new Random
+  
+  /** ------------ STATISTICAL RESULTS ----------------- **/
+  var emptyCluster : Int = -1
+  var switched : Int = -1
+  var ?# : Int = -1
+  var averageDist : Double = -1
+  var averageClusterSize : Double = -1
 
   //Initialize list of DoubleCluster of size nb
-  def buildClusters(nb:Int):List[DoubleCluster]= nb match {
+  private def buildClusters(nb:Int):List[DoubleCluster]= nb match {
     case 0 => List()
     case i => new DoubleCluster(i)::buildClusters(i-1)
   }
   //Initialize list of OptBoolCluster of size equals to cs.size = cluster
-  def buildOptionClusters:List[OptBoolCluster] = {  
+  private def buildOptionClusters:List[OptBoolCluster] = {  
     def createOptBoolClusters(centroids: List[DoubleCluster]):List[OptBoolCluster] = centroids match {
       case Nil => List()
       case y :: ys => {
@@ -55,7 +62,7 @@ object Kmeans {
     createOptBoolClusters(cs) 
   }
   
-  def buildData(path:String):Unit = {
+  private def buildData(path:String):Unit = {
        
     val buffer = new BufferedReader(new FileReader(path));
     var featureDef = false
@@ -87,9 +94,9 @@ object Kmeans {
   }
   
   //Assign to every element a cluster at random
-  def randomPartition:Unit = data.foreach(d => clusteredData.put(d._1,rand.nextInt(cluster)+1))
+  private def randomPartition:Unit = data.foreach(d => clusteredData.put(d._1,rand.nextInt(cluster)+1))
   
-  def assignment(cs:List[Cluster[_]]):Unit = {
+  private def assignment(cs:List[Cluster[_]]):Unit = {
     
     def assignClosestCluster(elem: (String,List[Int])):Unit = {
       var minMean = Double.MaxValue
@@ -109,7 +116,7 @@ object Kmeans {
     data.foreach(assignClosestCluster) //assign data to correct cluster   
   }
   
-  def update(cs:List[Cluster[_]]):Boolean = {
+  private def update(cs:List[Cluster[_]]):Boolean = {
     
     val csCopy = cs.map(_.copy) //Copy of the cluster before the update
     var centers = new HashMap[Int,List[Double]]
@@ -190,14 +197,20 @@ object Kmeans {
     csCopy != cs
   }
   
-  def optionStep:Unit = {
+  private def optionStep:Unit = {
     bs = buildOptionClusters
     val formerBs = bs.map(_.copy)  
     
     assignment(bs)
     val mod : Boolean = update(bs)
-    val moved : Int = endingCluster.filter(x => clusteredData.apply(x._1)!=x._2).size   
-    val emptyC : Int = bs.filter(_.isEmpty).size
+    switched = endingCluster.filter(x => clusteredData.apply(x._1)!=x._2).size   
+    emptyCluster  = bs.filter(_.isEmpty).size
+    bs.foreach(c => ?# += (if(!c.isEmpty) c.undefined else 0))
+    ?# += 1 //because start at -1
+    endingCluster.foreach(m => averageDist += bs(m._2-1).distanceFrom(data(m._1)))
+    averageDist = ((averageDist+1)/observations)
+    bs.foreach(c => averageClusterSize += c.getSize)
+    averageClusterSize = ((averageClusterSize+1)/(cluster-emptyCluster))
        
     def pick3atRandom(c: Cluster[_]) = {
       if(!c.isEmpty){
@@ -218,9 +231,12 @@ object Kmeans {
       if(!optBoolC.isEmpty) inner(optBoolC.getPos,1)
     }
     def prettyOutput(cs:List[DoubleCluster],fbs:List[OptBoolCluster],bs:List[OptBoolCluster]): Unit = (cs,fbs,bs) match {
-      case (Nil,Nil,Nil) => println("# objects moved during the one step-check: "+moved+
-    		  						"\nEmptyCluster: "+emptyC+
-    		  						"\nClusters are"+(if(!mod)" not" else "")+" modified")
+      case (Nil,Nil,Nil) => println("# objects moved during the one step-check: "+switched+
+    		  						"\nEmptyCluster: "+emptyCluster+
+    		  						"\nClusters are"+(if(!mod)" not" else "")+" modified"+
+    		  						"\nCluster contains "+ ?# +" ?"+
+    		  						"\nAverage Cluster size: "+averageClusterSize+
+    		  						"\nAverage distance of method from their own cluster: "+averageDist)
       case (x::xs,y::ys,z::zs) => {
         println(x+"\n"+y+"\n"+z)
         haz(z)
@@ -230,10 +246,10 @@ object Kmeans {
       case _ => //something went wrong
     }
     
-    prettyOutput(cs,formerBs,bs)
+    /*prettyOutput(cs,formerBs,bs)*/prettyOutput(Nil,Nil,Nil)
   }
   
-  def analysisPhase = {
+  private def analysisPhase = {
     def printCluster(c: OptBoolCluster):Unit = {
       out.write("<cl>\n")
       out.write(c.id+" "+c.getPos.map(_ match {case Some(false) => 0; case Some(true) => 1; case None => "?"}).mkString(" ")+"\n")
@@ -258,11 +274,20 @@ object Kmeans {
     }
   }
   
+  def apply(ls:List[String]):Unit = {
+    ?# = -1
+    switched = -1
+    emptyCluster = -1
+    averageDist = -1
+    averageClusterSize = -1
+
+    main(ls.toArray)
+  }
     //TODO add args outputfile
-  def checkArgs(args: Array[String]) = {
+  private def checkArgs(args: Array[String]) = {
     //Print into output file or no | By default; false
     if (args.contains("-p")) printy = true
-    //Choose number of clusters    | By default; 10
+    //Choose number of clusters    | By default; 15
     if (args.contains("-cl")){
       val index = args.indexOf("-cl")
       if(args.length > index+1){
@@ -285,7 +310,7 @@ object Kmeans {
         } catch {
           case e => println("Correct number of steps expected after -exit: "+e); System.exit(0)
     }}}
-    //Choose the threshold use for OptionCluster | By default 0.225
+    //Choose the threshold use for OptionCluster | By default 0.15
     if(args.contains("-th")){
       val index = args.indexOf("-th")
         if(args.length > index+1){
@@ -335,7 +360,7 @@ object Kmeans {
     	cs2stepAgo = cs1stepAgo.map(_.copy)
     	cs1stepAgo = cs.map(_.copy)
         assignment(cs)
-    	println("round :"+i+"\t"+cs)
+    	//println("round :"+i+"\t"+cs)
     	i+=1
        }
     }
