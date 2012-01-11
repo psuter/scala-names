@@ -18,7 +18,7 @@ object Kmeans {
   var printy = false 							//If true, print out in output file
   var cluster = 15 								//Number of wanted clusters
   var endAfterXStep = 100						//Exit the algorithm after X step
-  var threshold:Double = 0.15					//Threshold of OptBoolCluster
+  var threshold:Double = 0.2125					//Threshold of OptBoolCluster
   //var emptyCluster : Boolean = false			//Use of the modified K-means for avoiding empty cluster
   var loop : Boolean = false					//Empty cluster do not make algorithm looping
   var analysis = false							//If the output should be for the analysis plugin
@@ -43,6 +43,7 @@ object Kmeans {
   var ?# : Int = -1
   var averageDist : Double = -1
   var averageClusterSize : Double = -1
+  var averageDistBefore : Double = -1
 
   //Initialize list of DoubleCluster of size nb
   private def buildClusters(nb:Int):List[DoubleCluster]= nb match {
@@ -200,9 +201,18 @@ object Kmeans {
   private def optionStep:Unit = {
     bs = buildOptionClusters
     val formerBs = bs.map(_.copy)  
-    
     assignment(bs)
-    val mod : Boolean = update(bs)
+    var i = 0
+    while(update(bs)){
+      assignment(bs)
+      println("discrete round :"+i+"\t"+bs)
+      i += 1
+    }
+    
+    //one step
+    /*assignment(bs)
+    val mod : Boolean = update(bs)*/
+    
     switched = endingCluster.filter(x => clusteredData.apply(x._1)!=x._2).size   
     emptyCluster  = bs.filter(_.isEmpty).size
     bs.foreach(c => ?# += (if(!c.isEmpty) c.undefined else 0))
@@ -211,6 +221,8 @@ object Kmeans {
     averageDist = ((averageDist+1)/observations)
     bs.foreach(c => averageClusterSize += c.getSize)
     averageClusterSize = ((averageClusterSize+1)/(cluster-emptyCluster))
+    clusteredData.foreach(m => averageDistBefore += cs(m._2-1).distanceFrom(data(m._1)))
+    averageDistBefore = (averageDistBefore+1)/observations
        
     def pick3atRandom(c: Cluster[_]) = {
       if(!c.isEmpty){
@@ -233,7 +245,7 @@ object Kmeans {
     def prettyOutput(cs:List[DoubleCluster],fbs:List[OptBoolCluster],bs:List[OptBoolCluster]): Unit = (cs,fbs,bs) match {
       case (Nil,Nil,Nil) => println("# objects moved during the one step-check: "+switched+
     		  						"\nEmptyCluster: "+emptyCluster+
-    		  						"\nClusters are"+(if(!mod)" not" else "")+" modified"+
+    		  						//"\nClusters are"+(if(!mod)" not" else "")+" modified"+
     		  						"\nCluster contains "+ ?# +" ?"+
     		  						"\nAverage Cluster size: "+averageClusterSize+
     		  						"\nAverage distance of method from their own cluster: "+averageDist)
@@ -280,6 +292,7 @@ object Kmeans {
     emptyCluster = -1
     averageDist = -1
     averageClusterSize = -1
+    averageDistBefore = -1
 
     main(ls.toArray)
   }
@@ -310,12 +323,12 @@ object Kmeans {
         } catch {
           case e => println("Correct number of steps expected after -exit: "+e); System.exit(0)
     }}}
-    //Choose the threshold use for OptionCluster | By default 0.15
+    //Choose the threshold use for OptionCluster | By default 0.2125
     if(args.contains("-th")){
       val index = args.indexOf("-th")
         if(args.length > index+1){
           try{
-            val th = args.apply(index+1).toInt
+            val th = args.apply(index+1).toDouble
             if(th < 0 || th > 0.5) throw new Exception("Threshold should be between 0 and 0.5: "+th)
             threshold = th
           } catch {
@@ -330,9 +343,6 @@ object Kmeans {
     if(args.contains("-noLoop")) loop = true
     if(args.contains("-analysis")) analysis = true
   }
-  
-  //TODO ajouter feature
-  //TODO aller voir dans le code 
   
   def main(args: Array[String]) = {
 
@@ -360,7 +370,7 @@ object Kmeans {
     	cs2stepAgo = cs1stepAgo.map(_.copy)
     	cs1stepAgo = cs.map(_.copy)
         assignment(cs)
-    	//println("round :"+i+"\t"+cs)
+    	println("round :"+i+"\t"+cs)
     	i+=1
        }
     }

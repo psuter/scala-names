@@ -8,6 +8,8 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
   
   /**Indicate the number of ? in that cluster **/
   private var #? : Int = 0
+  
+  private var dim : Int = 0
 
   override def toString = "Option[Boolean] cluster "+id+ 
     					  (if(isEmpty) " is empty"
@@ -51,7 +53,7 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
       case (Some(false)::xs,y::ys) => y+dist(xs,ys)
       case (None::xs,y::ys) => dist(xs,ys)
     }
-    if(isEmpty || isCompletelyUndefined) Double.MaxValue else ((size * dist(getPos,ls))/(size - #?))
+    if(isEmpty || isCompletelyUndefined) Double.MaxValue else ((dim * dist(getPos,ls))/(dim - #?))
   }
   
   /*def distance(ls: List[Option[Boolean]]): Double = {   
@@ -80,6 +82,7 @@ class OptBoolCluster(val id:Int, treshold :Double) extends Cluster[Option[Boolea
     pos = ps
     this.size = size
     #? = 0
+    dim = ps.length
     ps.map(_ match {case None=> #? += 1 ;case _ =>})
     }
 
